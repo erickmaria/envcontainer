@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ErickMaria/envcontainer/internal/options"
 )
 
@@ -21,5 +20,4 @@ func main() {
 	command := options.Command{}
 	command.Init(flag.Values)
 
-	fmt.Print()
 }
