@@ -19,6 +19,12 @@ type Command struct {
 
 func (c *Command) Init(flags map[string]string) string {
 
+	var ports = []string{}
+
+	if flags["listener"] != "" {
+		ports = append(ports, flags["listener"])
+	}
+
 	dc := config.DockerCompose{
 		Version: "3.6",
 		Services: config.Services{
@@ -34,7 +40,7 @@ func (c *Command) Init(flags map[string]string) string {
 					Dockerfile: "Dockerfile",
 					Context:    "../",
 				},
-
+				Ports:      ports,
 				WorkingDir: "/home/" + flags["project"],
 				EnvFile: []string{
 					flags["envfile"],
