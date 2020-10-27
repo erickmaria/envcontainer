@@ -29,11 +29,12 @@ func (c *Command) Init(flags map[string]string) string {
 		Version: "3.6",
 		Services: config.Services{
 			Environment: config.Environment{
+				ContainerName: flags["project"],
 				Volumes: []config.Volumes{
 					config.Volumes{
 						Type:   "bind",
 						Source: "../../",
-						Target: "/home/" + flags["project"],
+						Target: "/home/envcontainer/" + flags["project"],
 					},
 				},
 				Build: config.Build{
@@ -41,12 +42,13 @@ func (c *Command) Init(flags map[string]string) string {
 					Context:    "../",
 				},
 				Ports:      ports,
-				WorkingDir: "/home/" + flags["project"],
+				WorkingDir: "/home/envcontainer/" + flags["project"],
 				EnvFile: []string{
 					flags["envfile"],
 				},
-				StdinOpen: true,
-				Tty:       true,
+				Privileged: true,
+				StdinOpen:  true,
+				Tty:        true,
 			},
 		},
 	}

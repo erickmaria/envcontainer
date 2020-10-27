@@ -20,13 +20,15 @@ type Volumes struct {
 	Target string `yaml:"target"`
 }
 type Environment struct {
-	Build      Build     `yaml:"build"`
-	Ports      []string  `yaml:"ports"`
-	WorkingDir string    `yaml:"working_dir"`
-	EnvFile    []string  `yaml:"env_file"`
-	Volumes    []Volumes `yaml:"volumes"`
-	StdinOpen  bool      `yaml:"stdin_open"`
-	Tty        bool      `yaml:"tty"`
+	ContainerName string    `yaml:"container_name"`
+	Build         Build     `yaml:"build"`
+	Ports         []string  `yaml:"ports"`
+	WorkingDir    string    `yaml:"working_dir"`
+	EnvFile       []string  `yaml:"env_file"`
+	Volumes       []Volumes `yaml:"volumes"`
+	Privileged    bool      `yaml:"privileged"`
+	StdinOpen     bool      `yaml:"stdin_open"`
+	Tty           bool      `yaml:"tty"`
 }
 type Services struct {
 	Environment Environment `yaml:"environment"`

@@ -10,7 +10,7 @@ func init() {
 
 	flag = options.Flag{}
 	flag.Values = make(map[string]string)
-	flag.Register("project", "envcontainer", "project name")
+	flag.Register("project", "app", "project name")
 	flag.Register("listener", "", "docker comtainer port listener")
 	flag.Register("envfile", "env/.variables", "docker environemt file")
 }
