@@ -8,10 +8,10 @@ type Flag struct {
 	Values map[string]string
 }
 
-func (f *Flag) Register(flagname, description string){
+func (f *Flag) Register(flagname, defaulvalue, description string){
 	var value string
 
-	flag.StringVar(&value, flagname, "", description)
+	flag.StringVar(&value, flagname, defaulvalue, description)
 	// flag.StringVar(&value, flagshortname, "", "project name")
 	flag.Parse()
 

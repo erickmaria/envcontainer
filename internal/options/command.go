@@ -11,17 +11,13 @@ const (
 	PATH_DEFAULT   = ".envcontainer/compose/env"
 	DOCKERFILE     = ".envcontainer/Dockerfile"
 	DOCKER_COMPOSE = ".envcontainer/compose/docker-compose.yaml"
-	ENV            = ".envcontainer/compose/env/.env"
+	ENV            = ".envcontainer/compose/env/.variables"
 )
 
 type Command struct {
 }
 
 func (c *Command) Init(flags map[string]string) string {
-
-	if flags["project"] == "" {
-		flags["project"] = "envcontainer"
-	}
 
 	dc := config.DockerCompose{
 		Version: "3.6",
@@ -38,9 +34,7 @@ func (c *Command) Init(flags map[string]string) string {
 					Dockerfile: "Dockerfile",
 					Context:    "../",
 				},
-				Ports: []string{
-					flags["listener"],
-				},
+
 				WorkingDir: "/home/" + flags["project"],
 				EnvFile: []string{
 					flags["envfile"],
