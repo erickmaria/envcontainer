@@ -17,24 +17,26 @@ const (
 type Command struct {
 }
 
-func (c *Command) Init(flags map[string]string) string {
+func (c *Command) Init(flags Flag) string {
+
+	values := flags.Values
 
 	var ports = []string{}
 
-	if flags["listener"] != "" {
-		ports = append(ports, flags["listener"])
+	if *values["listener"].value != "" {
+		ports = append(ports, *values["listener"].value)
 	}
 
 	dc := config.DockerCompose{
 		Version: "3.6",
 		Services: config.Services{
 			Environment: config.Environment{
-				ContainerName: flags["project"],
+				ContainerName: *values["project"].value,
 				Volumes: []config.Volumes{
 					config.Volumes{
 						Type:   "bind",
 						Source: "../../",
-						Target: "/home/envcontainer/" + flags["project"],
+						Target: "/home/envcontainer/" + *values["project"].value,
 					},
 				},
 				Build: config.Build{
@@ -42,9 +44,9 @@ func (c *Command) Init(flags map[string]string) string {
 					Context:    "../",
 				},
 				Ports:      ports,
-				WorkingDir: "/home/envcontainer/" + flags["project"],
+				WorkingDir: "/home/envcontainer/" + *values["project"].value,
 				EnvFile: []string{
-					flags["envfile"],
+					*values["envfile"].value,
 				},
 				Privileged: true,
 				StdinOpen:  true,
@@ -62,11 +64,9 @@ func (c *Command) Init(flags map[string]string) string {
 		check(ioutil.WriteFile(name, data, 0644))
 	}
 
-	createFile(DOCKERFILE, []byte(""))
+	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
-
-	// archive.FileWrite(DOCKER_COMPOSE, "sfgf")
 
 	return "init"
 }

@@ -4,17 +4,21 @@ import (
 	"flag"
 )
 
-type Flag struct {
-	Values map[string]string
+type Values struct {
+	value       *string
+	Defaulvalue string
+	Description string
 }
 
-func (f *Flag) Register(flagname, defaulvalue string, description string){
-	var value string
+type Flag struct {
+	Values map[string]Values
+}
 
-	flag.StringVar(&value, flagname, defaulvalue, description)
-	// flag.StringVar(&value, flagshortname, "", "project name")
+func (f *Flag) Register() {
+
+	for k, v := range f.Values {
+		v.value = flag.String(k, v.Defaulvalue, v.Description)
+		f.Values[k] = v
+	}
 	flag.Parse()
-
-	f.Values[flagname] = value
-	// f.Values[flagshortname] = value	
 }
