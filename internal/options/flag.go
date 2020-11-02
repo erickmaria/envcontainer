@@ -16,11 +16,6 @@ type Flag struct {
 	Values  map[string]Values
 }
 
-func NewFlag(f Flag) Flag {
-	f.Register()
-	return f
-}
-
 func (f *Flag) Register() {
 
 	cmdFlang := flag.NewFlagSet(f.Command, flag.ExitOnError)

@@ -1,14 +1,17 @@
 package options
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/config"
 )
 
 const (
+	HOME           = ".envcontainer"
 	PATH_DEFAULT   = ".envcontainer/compose/env"
 	DOCKERFILE     = ".envcontainer/Dockerfile"
 	DOCKER_COMPOSE = ".envcontainer/compose/docker-compose.yaml"
@@ -96,6 +99,33 @@ func Help(descs map[string]Command) {
 	}
 
 	fmt.Println()
+}
+
+func Delete(flags Flag) {
+
+	values := flags.Values
+	autoApprove := values["auto-approve"]
+
+	if *autoApprove.value == "" {
+		fmt.Print("do you're have sure? (yes/no): ")
+		reader := bufio.NewReader(os.Stdin)
+		confirmation, _, err := reader.ReadLine()
+		check(err)
+
+		v := string(confirmation)
+		autoApprove.value = &v
+	}
+
+	switch strings.ToLower(*autoApprove.value) {
+	case "yes":
+		break
+	case "no":
+		return
+	default:
+		fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
+		return
+	}
+	os.RemoveAll(".envcontainer")
 }
 
 func check(e error) {
