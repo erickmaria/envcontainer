@@ -1,6 +1,7 @@
 package options
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -15,15 +16,17 @@ const (
 )
 
 const (
-	INIT string = "init"
-	RUN  string = "run"
-	STOP string = "stop"
-	HELP string = "help"
+	INIT   string = "init"
+	RUN    string = "run"
+	STOP   string = "stop"
+	DELETE string = "delete"
+	HELP   string = "help"
 )
 
 type Command struct {
 	Flags Flag
 	Exec  func()
+	Desc  string
 }
 
 func Init(flags Flag) {
@@ -76,6 +79,23 @@ func Init(flags Flag) {
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
+}
+
+func Help(descs map[string]Command) {
+
+	fmt.Println("\nUsage:  envcontainer COMMAND --FLAGS")
+
+	fmt.Println("\nCommands")
+
+	for commandKey, comandValue := range descs {
+		fmt.Printf("%s:     \t%v\n", commandKey, descs[commandKey].Desc)
+		for flagKey, flagValue := range comandValue.Flags.Values {
+			fmt.Printf("    --%s:     \t%v\n", flagKey, flagValue.Description)
+		}
+
+	}
+
+	fmt.Println()
 }
 
 func check(e error) {
