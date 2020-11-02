@@ -14,10 +14,19 @@ const (
 	ENV            = ".envcontainer/compose/env/.variables"
 )
 
+const (
+	INIT string = "init"
+	RUN  string = "run"
+	STOP string = "stop"
+	HELP string = "help"
+)
+
 type Command struct {
+	Flags Flag
+	Exec  func()
 }
 
-func (c *Command) Init(flags Flag) string {
+func Init(flags Flag) {
 
 	values := flags.Values
 
@@ -67,20 +76,6 @@ func (c *Command) Init(flags Flag) string {
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
-
-	return "init"
-}
-
-func (c *Command) Up() string {
-	return "up"
-}
-
-func (c *Command) Build() string {
-	return "build"
-}
-
-func (c *Command) Down() string {
-	return "down"
 }
 
 func check(e error) {

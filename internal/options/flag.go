@@ -2,6 +2,7 @@ package options
 
 import (
 	"flag"
+	"os"
 )
 
 type Values struct {
@@ -11,14 +12,22 @@ type Values struct {
 }
 
 type Flag struct {
-	Values map[string]Values
+	Command string
+	Values  map[string]Values
+}
+
+func NewFlag(f Flag) Flag {
+	f.Register()
+	return f
 }
 
 func (f *Flag) Register() {
 
+	cmdFlang := flag.NewFlagSet(f.Command, flag.ExitOnError)
+
 	for k, v := range f.Values {
-		v.value = flag.String(k, v.Defaulvalue, v.Description)
+		v.value = cmdFlang.String(k, v.Defaulvalue, v.Description)
 		f.Values[k] = v
 	}
-	flag.Parse()
+	cmdFlang.Parse(os.Args[2:])
 }
