@@ -84,6 +84,8 @@ func Init(flags Flag) {
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
+
+	fmt.Println("envcontainer initialized!")
 }
 
 func Run() {
@@ -101,9 +103,17 @@ func Run() {
 	command(
 		"docker",
 		"exec",
+		dc.Services.Environment.ContainerName,
+		"/bin/echo",
+		"envcontainer: connected!",
+	)
+
+	command(
+		"docker",
+		"exec",
 		"-it",
 		dc.Services.Environment.ContainerName,
-		"bash",
+		"/bin/bash",
 	)
 }
 
@@ -160,7 +170,12 @@ func Delete(flags Flag) {
 		fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
 		return
 	}
-	os.RemoveAll(".envcontainer")
+
+	err := os.RemoveAll(".envcontainer")
+	check(err)
+
+	fmt.Println("envcontainer: configuration deleted")
+
 }
 
 func check(e error) {
