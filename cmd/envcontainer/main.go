@@ -7,7 +7,7 @@ import (
 	"github.com/ErickMaria/envcontainer/internal/options"
 )
 
-var cmds map[string]options.Command
+var cmds = options.CommandConfig
 
 func init() {
 

@@ -28,6 +28,8 @@ const (
 	HELP   string = "help"
 )
 
+var CommandConfig map[string]Command
+
 type Command struct {
 	Flags Flag
 	Exec  func()
