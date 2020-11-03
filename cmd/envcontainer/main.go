@@ -39,6 +39,15 @@ func init() {
 			},
 			Desc: "create envcontainer blueprint",
 		},
+		options.RUN: options.Command{
+			Flags: options.Flag{
+				Command: options.RUN,
+			},
+			Desc: "",
+			Exec: func() {
+				options.Run()
+			},
+		},
 		options.DELETE: options.Command{
 			Flags: options.Flag{
 				Command: options.DELETE,
@@ -71,6 +80,8 @@ func main() {
 	switch os.Args[1] {
 	case options.INIT:
 		cmds[options.INIT].Exec()
+	case options.RUN:
+		cmds[options.RUN].Exec()
 	case options.DELETE:
 		cmds[options.DELETE].Exec()
 	case options.HELP:

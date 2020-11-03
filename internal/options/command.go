@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/config"
@@ -82,6 +84,39 @@ func Init(flags Flag) {
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
+}
+
+func Run() {
+
+	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
+
+	command(
+		"docker-compose",
+		"-f",
+		DOCKER_COMPOSE,
+		"up",
+		"-d",
+	)
+
+	command(
+		"docker",
+		"exec",
+		"-it",
+		dc.Services.Environment.ContainerName,
+		"bash",
+	)
+}
+
+func command(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stdout = os.Stderr
+	err := cmd.Run()
+
+	if err != nil {
+		log.Fatalf("command failed: %v", err)
+	}
 }
 
 func Help(descs map[string]Command) {

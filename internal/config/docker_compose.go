@@ -1,6 +1,7 @@
 package config
 
 import (
+	"io/ioutil"
 	"log"
 
 	"gopkg.in/yaml.v2"
@@ -45,6 +46,24 @@ func (dc *DockerCompose) Marshal() []byte {
 	}
 
 	return data
+}
+
+func (dc *DockerCompose) Unmarshal(path string) DockerCompose {
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	optDc := DockerCompose{}
+
+	err2 := yaml.Unmarshal(data, &optDc)
+
+	if err2 != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	return optDc
 }
 
 // func (s *DockerCompose) port() (string) {
