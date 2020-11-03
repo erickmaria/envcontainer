@@ -66,7 +66,7 @@ func init() {
 			Exec: func() {
 				options.Help(cmds)
 			},
-			Desc: "Run 'envcontainer COMMAND --help' for more information on a command. See: 'envcontainer help'",
+			Desc: "Run 'envcontainer COMMAND' for more information on a command. See: 'envcontainer help'",
 		},
 	}
 
