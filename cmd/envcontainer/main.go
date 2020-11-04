@@ -41,7 +41,7 @@ func init() {
 			Flags: options.Flag{
 				Command: options.RUN,
 			},
-			Desc: "",
+			Desc: "creates the container and links to the project",
 			Exec: func() {
 				options.Run()
 			},
