@@ -139,6 +139,7 @@ func Run() {
 		DOCKER_COMPOSE,
 		"up",
 		"-d",
+		"--build",
 	)
 
 	command(
@@ -146,7 +147,7 @@ func Run() {
 		"exec",
 		dc.Services.Environment.ContainerName,
 		"/bin/echo",
-		"envcontainer: connected!",
+		"\nenvcontainer: connected!",
 	)
 
 	command(
