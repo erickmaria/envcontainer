@@ -38,8 +38,13 @@ type Command struct {
 
 func NewCommand(cc CommandConfig) (*Command, CommandConfig) {
 
+	if isEmpty() {
+		Help(cc)
+		os.Exit(0)
+	}
+
 	if !contains(cc) {
-		Help(cc, false)
+		fmt.Printf("envcontainer: '%s' is not a envcontainer command\n%s\n", os.Args[1], cc[HELP].Desc)
 		os.Exit(0)
 	}
 
@@ -52,11 +57,14 @@ func (c Command) Listener() {
 	c.Exec()
 }
 
-func contains(cc CommandConfig) bool {
-
+func isEmpty() bool {
 	if len(os.Args) < 2 {
-		return false
+		return true
 	}
+	return false
+}
+
+func contains(cc CommandConfig) bool {
 
 	for k := range cc {
 		if strings.ToLower(os.Args[1]) == k {
@@ -64,7 +72,6 @@ func contains(cc CommandConfig) bool {
 		}
 	}
 
-	// fmt.Println(cc[options.HELP].Desc)
 	return false
 }
 
@@ -163,12 +170,7 @@ func command(name string, args ...string) {
 	}
 }
 
-func Help(descs map[string]Command, command_exist bool) {
-
-	if !command_exist {
-		fmt.Println(descs[HELP].Desc)
-		os.Exit(0)
-	}
+func Help(descs map[string]Command) {
 
 	fmt.Println("\nUsage: envcontainer COMMAND --FLAGS")
 
