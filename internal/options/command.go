@@ -28,12 +28,44 @@ const (
 	HELP   string = "help"
 )
 
-var CommandConfig map[string]Command
+type CommandConfig map[string]Command
 
 type Command struct {
 	Flags Flag
 	Exec  func()
 	Desc  string
+}
+
+func NewCommand(cc CommandConfig) (*Command, CommandConfig) {
+
+	if !contains(cc) {
+		Help(cc, false)
+		os.Exit(0)
+	}
+
+	ccAux := cc[os.Args[1]]
+	return &ccAux, cc
+}
+
+func (c Command) Listener() {
+	c.Flags.Register()
+	c.Exec()
+}
+
+func contains(cc CommandConfig) bool {
+
+	if len(os.Args) < 2 {
+		return false
+	}
+
+	for k := range cc {
+		if strings.ToLower(os.Args[1]) == k {
+			return true
+		}
+	}
+
+	// fmt.Println(cc[options.HELP].Desc)
+	return false
 }
 
 func Init(flags Flag) {
@@ -131,9 +163,14 @@ func command(name string, args ...string) {
 	}
 }
 
-func Help(descs map[string]Command) {
+func Help(descs map[string]Command, command_exist bool) {
 
-	fmt.Println("\nUsage:  envcontainer COMMAND --FLAGS")
+	if !command_exist {
+		fmt.Println(descs[HELP].Desc)
+		os.Exit(0)
+	}
+
+	fmt.Println("\nUsage: envcontainer COMMAND --FLAGS")
 
 	fmt.Println("\nCommands")
 

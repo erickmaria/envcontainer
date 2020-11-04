@@ -1,17 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/ErickMaria/envcontainer/internal/options"
 )
 
-var cmds = options.CommandConfig
+var cmd *options.Command
+var cmds options.CommandConfig
 
 func init() {
 
-	cmds = map[string]options.Command{
+	cmd, cmds = options.NewCommand(options.CommandConfig{
 		options.INIT: options.Command{
 			Flags: options.Flag{
 				Command: options.INIT,
@@ -35,7 +33,7 @@ func init() {
 				},
 			},
 			Exec: func() {
-				options.Init(cmds[options.INIT].Flags)
+				options.Init(cmd.Flags)
 			},
 			Desc: "create envcontainer blueprint",
 		},
@@ -58,36 +56,20 @@ func init() {
 				},
 			},
 			Exec: func() {
-				options.Delete(cmds[options.DELETE].Flags)
+				options.Delete(cmd.Flags)
 			},
 			Desc: "delete envcontainer configs",
 		},
 		options.HELP: options.Command{
 			Exec: func() {
-				options.Help(cmds)
+				options.Help(cmds, true)
 			},
 			Desc: "Run 'envcontainer COMMAND' for more information on a command. See: 'envcontainer help'",
 		},
-	}
+	})
 
 }
 
 func main() {
-
-	flgs := cmds[os.Args[1]].Flags
-	flgs.Register()
-
-	switch os.Args[1] {
-	case options.INIT:
-		cmds[options.INIT].Exec()
-	case options.RUN:
-		cmds[options.RUN].Exec()
-	case options.DELETE:
-		cmds[options.DELETE].Exec()
-	case options.HELP:
-		cmds[options.HELP].Exec()
-	default:
-		fmt.Printf("envcontainer: '%s' is not a envcontainer command.\n", os.Args[1])
-	}
-
+	cmd.Listener()
 }
