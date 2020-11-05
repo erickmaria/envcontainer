@@ -37,13 +37,19 @@ func init() {
 			},
 			Desc: "create envcontainer blueprint",
 		},
-		options.RUN: options.Command{
+		options.CONNECT: options.Command{
 			Flags: options.Flag{
-				Command: options.RUN,
+				Command: options.CONNECT,
+				Values: map[string]options.Values{
+					"shell": options.Values{
+						Defaulvalue: "bash",
+						Description: "terminal shell that must be used",
+					},
+				},
 			},
 			Desc: "creates the container and links to the project",
 			Exec: func() {
-				options.Run()
+				options.Connect(cmd.Flags)
 			},
 		},
 		options.DELETE: options.Command{

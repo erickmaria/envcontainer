@@ -21,11 +21,11 @@ const (
 )
 
 const (
-	INIT   string = "init"
-	RUN    string = "run"
-	STOP   string = "stop"
-	DELETE string = "delete"
-	HELP   string = "help"
+	INIT    string = "init"
+	CONNECT string = "connect"
+	STOP    string = "stop"
+	DELETE  string = "delete"
+	HELP    string = "help"
 )
 
 type CommandConfig map[string]Command
@@ -129,7 +129,7 @@ func Init(flags Flag) {
 	fmt.Println("envcontainer initialized!")
 }
 
-func Run() {
+func Connect(flags Flag) {
 
 	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
 
@@ -146,7 +146,7 @@ func Run() {
 		"docker",
 		"exec",
 		dc.Services.Environment.ContainerName,
-		"/bin/echo",
+		"echo",
 		"\nenvcontainer: connected!",
 	)
 
@@ -155,7 +155,7 @@ func Run() {
 		"exec",
 		"-it",
 		dc.Services.Environment.ContainerName,
-		"/bin/bash",
+		*flags.Values["shell"].value,
 	)
 }
 
