@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/config"
@@ -125,6 +126,16 @@ func Init(flags Flag) {
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
+
+	noBuild, err2 := strconv.ParseBool(*values["no-build"].value)
+	if err2 != nil {
+		fmt.Println("envcontainer: values accepted are 'true' or 'false'")
+		os.Exit(0)
+	}
+
+	if !noBuild {
+		Build()
+	}
 
 	fmt.Println("envcontainer initialized!")
 }

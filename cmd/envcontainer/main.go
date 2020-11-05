@@ -30,6 +30,10 @@ func init() {
 						Defaulvalue: "ubuntu",
 						Description: "dockerfile image",
 					},
+					"no-build": options.Values{
+						Defaulvalue: "false",
+						Description: "init envcontainer and build configs",
+					},
 				},
 			},
 			Exec: func() {
