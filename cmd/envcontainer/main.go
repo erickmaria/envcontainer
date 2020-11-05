@@ -34,6 +34,10 @@ func init() {
 						Defaulvalue: "false",
 						Description: "init envcontainer and build configs. default: false",
 					},
+					"override": options.Values{
+						Defaulvalue: "no",
+						Description: "override envcontainer configs (yes/no)",
+					},
 				},
 			},
 			Exec: func() {

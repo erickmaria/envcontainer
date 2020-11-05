@@ -80,6 +80,34 @@ func Init(flags Flag) {
 
 	values := flags.Values
 
+	override := values["override"]
+
+	// fmt.Println(*override.value)
+
+	if _, err := os.Stat(HOME); !os.IsNotExist(err) {
+
+		if *override.value != "yes" {
+
+			fmt.Print("envcontainer has exists in this project, do you're have override? (yes/no): ")
+			reader := bufio.NewReader(os.Stdin)
+			confirmation, _, err := reader.ReadLine()
+			check("envcontainer: error to read confirmation input, check input", err)
+
+			v := string(confirmation)
+			override.value = &v
+
+			switch strings.ToLower(*override.value) {
+			case "yes":
+				break
+			case "no":
+				return
+			default:
+				fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
+				return
+			}
+		}
+	}
+
 	var ports = []string{}
 
 	if *values["listener"].value != "" {
@@ -190,7 +218,7 @@ func command(name string, args ...string) {
 	err := cmd.Run()
 
 	if err != nil {
-		check("envcontainer: command failed, check envcontainer configs", err)
+		check("envcontainer: command failed, check envcontainer configs and permisstions", err)
 	}
 }
 
