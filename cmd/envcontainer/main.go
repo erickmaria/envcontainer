@@ -32,7 +32,7 @@ func init() {
 					},
 					"no-build": options.Values{
 						Defaulvalue: "false",
-						Description: "init envcontainer and build configs",
+						Description: "init envcontainer and build configs. default: false",
 					},
 				},
 			},
