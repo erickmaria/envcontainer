@@ -37,6 +37,15 @@ func init() {
 			},
 			Desc: "create envcontainer blueprint",
 		},
+		options.BUILD: options.Command{
+			Flags: options.Flag{
+				Command: options.BUILD,
+			},
+			Desc: "prepare envcontainer to connect on container",
+			Exec: func() {
+				options.Build()
+			},
+		},
 		options.CONNECT: options.Command{
 			Flags: options.Flag{
 				Command: options.CONNECT,

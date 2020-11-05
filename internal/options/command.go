@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -22,6 +21,7 @@ const (
 
 const (
 	INIT    string = "init"
+	BUILD   string = "build"
 	CONNECT string = "connect"
 	STOP    string = "stop"
 	DELETE  string = "delete"
@@ -116,10 +116,10 @@ func Init(flags Flag) {
 	data := dc.Marshal()
 
 	err := os.MkdirAll(PATH_DEFAULT, 0755)
-	check(err)
+	check("envcontainer: error to create folders, check permissions", err)
 
 	createFile := func(name string, data []byte) {
-		check(ioutil.WriteFile(name, data, 0644))
+		check("envcontainer: error to crete config files, check permissions", ioutil.WriteFile(name, data, 0644))
 	}
 
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
@@ -129,9 +129,7 @@ func Init(flags Flag) {
 	fmt.Println("envcontainer initialized!")
 }
 
-func Connect(flags Flag) {
-
-	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
+func Build() {
 
 	command(
 		"docker-compose",
@@ -141,6 +139,14 @@ func Connect(flags Flag) {
 		"-d",
 		"--build",
 	)
+
+	fmt.Println("envcontainer: build successful!")
+
+}
+
+func Connect(flags Flag) {
+
+	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
 
 	command(
 		"docker",
@@ -167,7 +173,7 @@ func command(name string, args ...string) {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Fatalf("command failed: %v", err)
+		check("envcontainer: command failed, check envcontainer configs", err)
 	}
 }
 
@@ -197,7 +203,7 @@ func Delete(flags Flag) {
 		fmt.Print("do you're have sure? (yes/no): ")
 		reader := bufio.NewReader(os.Stdin)
 		confirmation, _, err := reader.ReadLine()
-		check(err)
+		check("envcontainer: error to read confirmation input, check input", err)
 
 		v := string(confirmation)
 		autoApprove.value = &v
@@ -214,14 +220,14 @@ func Delete(flags Flag) {
 	}
 
 	err := os.RemoveAll(".envcontainer")
-	check(err)
+	check("envcontainer: cannot remove files, check permissions", err)
 
 	fmt.Println("envcontainer: configuration deleted")
 
 }
 
-func check(e error) {
+func check(message string, e error) {
 	if e != nil {
-		panic(e)
+		panic(message + ": " + e.Error())
 	}
 }
