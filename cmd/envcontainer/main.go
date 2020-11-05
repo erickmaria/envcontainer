@@ -50,9 +50,9 @@ func init() {
 				options.Build()
 			},
 		},
-		options.CONNECT: options.Command{
+		options.START: options.Command{
 			Flags: options.Flag{
-				Command: options.CONNECT,
+				Command: options.START,
 				Values: map[string]options.Values{
 					"shell": options.Values{
 						Defaulvalue: "bash",
@@ -62,7 +62,16 @@ func init() {
 			},
 			Desc: "creates the container and links to the project",
 			Exec: func() {
-				options.Connect(cmd.Flags)
+				options.Start(cmd.Flags)
+			},
+		},
+		options.STOP: options.Command{
+			Flags: options.Flag{
+				Command: options.STOP,
+			},
+			Desc: "delete envcontainer container",
+			Exec: func() {
+				options.Stop()
 			},
 		},
 		options.DELETE: options.Command{

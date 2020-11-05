@@ -21,12 +21,12 @@ const (
 )
 
 const (
-	INIT    string = "init"
-	BUILD   string = "build"
-	CONNECT string = "connect"
-	STOP    string = "stop"
-	DELETE  string = "delete"
-	HELP    string = "help"
+	INIT   string = "init"
+	BUILD  string = "build"
+	START  string = "start"
+	STOP   string = "stop"
+	DELETE string = "delete"
+	HELP   string = "help"
 )
 
 type CommandConfig map[string]Command
@@ -155,16 +155,22 @@ func Build() {
 
 }
 
-func Connect(flags Flag) {
+func Start(flags Flag) {
 
 	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
+
+	command(
+		"docker",
+		"start",
+		dc.Services.Environment.ContainerName,
+	)
 
 	command(
 		"docker",
 		"exec",
 		dc.Services.Environment.ContainerName,
 		"echo",
-		"\nenvcontainer: connected!",
+		"envcontainer: connected!",
 	)
 
 	command(
@@ -186,6 +192,19 @@ func command(name string, args ...string) {
 	if err != nil {
 		check("envcontainer: command failed, check envcontainer configs", err)
 	}
+}
+
+func Stop() {
+
+	command(
+		"docker-compose",
+		"-f",
+		DOCKER_COMPOSE,
+		"kill",
+	)
+
+	fmt.Println("envcontainer: stopped")
+
 }
 
 func Help(descs map[string]Command) {
@@ -229,6 +248,15 @@ func Delete(flags Flag) {
 		fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
 		return
 	}
+
+	command(
+		"docker-compose",
+		"-f",
+		DOCKER_COMPOSE,
+		"down",
+		"--rmi",
+		"all",
+	)
 
 	err := os.RemoveAll(".envcontainer")
 	check("envcontainer: cannot remove files, check permissions", err)
