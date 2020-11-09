@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/ErickMaria/envcontainer/internal/options"
 )
 
@@ -97,6 +99,12 @@ func init() {
 				options.Delete(cmd.Flags)
 			},
 			Desc: "delete envcontainer configs",
+		},
+		options.VERSION: options.Command{
+			Exec: func() {
+				fmt.Println("0.0.1-alpha")
+			},
+			Desc: "show envcontainer version",
 		},
 		options.HELP: options.Command{
 			Exec: func() {

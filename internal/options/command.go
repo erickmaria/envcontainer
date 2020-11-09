@@ -20,12 +20,13 @@ const (
 )
 
 const (
-	INIT   string = "init"
-	BUILD  string = "build"
-	START  string = "start"
-	STOP   string = "stop"
-	DELETE string = "delete"
-	HELP   string = "help"
+	INIT    string = "init"
+	BUILD   string = "build"
+	START   string = "start"
+	STOP    string = "stop"
+	DELETE  string = "delete"
+	HELP    string = "help"
+	VERSION string = "version"
 )
 
 type CommandConfig map[string]Command
