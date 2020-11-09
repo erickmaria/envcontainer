@@ -9,6 +9,11 @@ var cmds options.CommandConfig
 
 func init() {
 
+	// dir, err := os.Getwd()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		options.INIT: options.Command{
 			Flags: options.Flag{
@@ -23,7 +28,7 @@ func init() {
 						Description: "docker comtainer port listener",
 					},
 					"envfile": options.Values{
-						Defaulvalue: "env/.variables",
+						Defaulvalue: ".envcontainer/compose/env/.variables",
 						Description: "docker environemt file",
 					},
 					"image": options.Values{
@@ -32,11 +37,11 @@ func init() {
 					},
 					"no-build": options.Values{
 						Defaulvalue: "false",
-						Description: "init envcontainer and build configs. default: false",
+						Description: "init envcontainer and build configs",
 					},
 					"override": options.Values{
-						Defaulvalue: "no",
-						Description: "override envcontainer configs (yes/no)",
+						Defaulvalue: "false",
+						Description: "override envcontainer configs",
 					},
 				},
 			},
@@ -83,7 +88,8 @@ func init() {
 				Command: options.DELETE,
 				Values: map[string]options.Values{
 					"auto-approve": options.Values{
-						Description: "skip confirmation (yes/no)",
+						Description: "skip confirmation",
+						Defaulvalue: "false",
 					},
 				},
 			},

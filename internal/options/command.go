@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/config"
@@ -79,14 +78,11 @@ func contains(cc CommandConfig) bool {
 func Init(flags Flag) {
 
 	values := flags.Values
-
-	override := values["override"]
-
-	// fmt.Println(*override.value)
+	override := values["override"].valueBool
 
 	if _, err := os.Stat(HOME); !os.IsNotExist(err) {
 
-		if *override.value != "yes" {
+		if !*override {
 
 			fmt.Print("envcontainer has exists in this project, do you're have override? (yes/no): ")
 			reader := bufio.NewReader(os.Stdin)
@@ -94,9 +90,8 @@ func Init(flags Flag) {
 			check("envcontainer: error to read confirmation input, check input", err)
 
 			v := string(confirmation)
-			override.value = &v
 
-			switch strings.ToLower(*override.value) {
+			switch strings.ToLower(v) {
 			case "yes":
 				break
 			case "no":
@@ -105,25 +100,26 @@ func Init(flags Flag) {
 				fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
 				return
 			}
+
 		}
 	}
 
 	var ports = []string{}
 
-	if *values["listener"].value != "" {
-		ports = append(ports, *values["listener"].value)
+	if *values["listener"].valueString != "" {
+		ports = append(ports, *values["listener"].valueString)
 	}
 
 	dc := config.DockerCompose{
 		Version: "3.6",
 		Services: config.Services{
 			Environment: config.Environment{
-				ContainerName: *values["project"].value,
+				ContainerName: *values["project"].valueString,
 				Volumes: []config.Volumes{
 					config.Volumes{
 						Type:   "bind",
 						Source: "../../",
-						Target: "/home/envcontainer/" + *values["project"].value,
+						Target: "/home/envcontainer/" + *values["project"].valueString,
 					},
 				},
 				Build: config.Build{
@@ -131,9 +127,9 @@ func Init(flags Flag) {
 					Context:    "../",
 				},
 				Ports:      ports,
-				WorkingDir: "/home/envcontainer/" + *values["project"].value,
+				WorkingDir: "/home/envcontainer/" + *values["project"].valueString,
 				EnvFile: []string{
-					*values["envfile"].value,
+					"$PWD/" + *values["envfile"].valueString,
 				},
 				Privileged: true,
 				StdinOpen:  true,
@@ -151,17 +147,17 @@ func Init(flags Flag) {
 		check("envcontainer: error to crete config files, check permissions", ioutil.WriteFile(name, data, 0644))
 	}
 
-	createFile(DOCKERFILE, []byte("FROM "+*values["image"].value))
+	createFile(DOCKERFILE, []byte("FROM "+*values["image"].valueString))
 	createFile(DOCKER_COMPOSE, data)
 	createFile(ENV, []byte(""))
 
-	noBuild, err2 := strconv.ParseBool(*values["no-build"].value)
-	if err2 != nil {
-		fmt.Println("envcontainer: values accepted are 'true' or 'false'")
-		os.Exit(0)
-	}
+	// noBuild, err2 := strconv.ParseBool(*values["no-build"].valueBool)
+	// if err2 != nil {
+	// 	fmt.Println("envcontainer: values accepted are 'true' or 'false'")
+	// 	os.Exit(0)
+	// }
 
-	if !noBuild {
+	if !*values["no-build"].valueBool {
 		Build()
 	}
 
@@ -206,7 +202,7 @@ func Start(flags Flag) {
 		"exec",
 		"-it",
 		dc.Services.Environment.ContainerName,
-		*flags.Values["shell"].value,
+		*flags.Values["shell"].valueString,
 	)
 }
 
@@ -257,24 +253,23 @@ func Delete(flags Flag) {
 	values := flags.Values
 	autoApprove := values["auto-approve"]
 
-	if *autoApprove.value == "" {
+	if !*autoApprove.valueBool {
 		fmt.Print("do you're have sure? (yes/no): ")
 		reader := bufio.NewReader(os.Stdin)
 		confirmation, _, err := reader.ReadLine()
 		check("envcontainer: error to read confirmation input, check input", err)
 
 		v := string(confirmation)
-		autoApprove.value = &v
-	}
 
-	switch strings.ToLower(*autoApprove.value) {
-	case "yes":
-		break
-	case "no":
-		return
-	default:
-		fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
-		return
+		switch strings.ToLower(v) {
+		case "yes":
+			break
+		case "no":
+			return
+		default:
+			fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
+			return
+		}
 	}
 
 	command(
