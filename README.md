@@ -28,6 +28,7 @@ envcontainer init
 This command will create a folder named by ".envcontainer", with a some files like Dockerfile, docker-compose and .variables.
 
 How your can edit Dockerfile into .envcontainer folder to prepare your workspace inside container
+> Obs: make sure the Dockerfile base image has an entrypoint otherwise add it at the end of the file
 
 ### Build
 
