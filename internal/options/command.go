@@ -13,10 +13,10 @@ import (
 
 const (
 	HOME           = ".envcontainer"
-	PATH_DEFAULT   = ".envcontainer/compose/env"
+	PATH_DEFAULT   = ".envcontainer/compose"
 	DOCKERFILE     = ".envcontainer/Dockerfile"
 	DOCKER_COMPOSE = ".envcontainer/compose/docker-compose.yaml"
-	ENV            = ".envcontainer/compose/env/.variables"
+	ENV            = ".envcontainer/compose/.env"
 )
 
 const (
@@ -78,7 +78,10 @@ func contains(cc CommandConfig) bool {
 
 func Init(flags Flag) {
 
+	validate()
+
 	values := flags.Values
+
 	override := values["override"].valueBool
 
 	if _, err := os.Stat(HOME); !os.IsNotExist(err) {
@@ -127,6 +130,7 @@ func Init(flags Flag) {
 					Dockerfile: "Dockerfile",
 					Context:    "../",
 				},
+				Image:      "envcontainer/" + *values["project"].valueString,
 				Ports:      ports,
 				WorkingDir: "/home/envcontainer/" + *values["project"].valueString,
 				EnvFile: []string{
@@ -150,13 +154,9 @@ func Init(flags Flag) {
 
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].valueString))
 	createFile(DOCKER_COMPOSE, data)
-	createFile(ENV, []byte(""))
 
-	// noBuild, err2 := strconv.ParseBool(*values["no-build"].valueBool)
-	// if err2 != nil {
-	// 	fmt.Println("envcontainer: values accepted are 'true' or 'false'")
-	// 	os.Exit(0)
-	// }
+	envContent := fmt.Sprintf("COMPOSE_PROJECT_NAME=%s\nCOMPOSE_IGNORE_ORPHANS=True", *values["project"].valueString)
+	createFile(ENV, []byte(envContent))
 
 	if !*values["no-build"].valueBool {
 		Build()
@@ -167,13 +167,13 @@ func Init(flags Flag) {
 
 func Build() {
 
+	validate()
+
 	command(
 		"docker-compose",
 		"-f",
 		DOCKER_COMPOSE,
-		"up",
-		"-d",
-		"--build",
+		"build",
 	)
 
 	fmt.Println("envcontainer: build successful!")
@@ -182,21 +182,20 @@ func Build() {
 
 func Start(flags Flag) {
 
+	validate()
+
 	dc := config.DockerComposeConfig.Unmarshal(DOCKER_COMPOSE)
 
 	command(
-		"docker",
-		"start",
-		dc.Services.Environment.ContainerName,
+		"docker-compose",
+		"-f",
+		DOCKER_COMPOSE,
+		"up",
+		"-d",
+		"--no-log-prefix",
 	)
 
-	command(
-		"docker",
-		"exec",
-		dc.Services.Environment.ContainerName,
-		"echo",
-		"envcontainer: connected!",
-	)
+	// command("clear")
 
 	command(
 		"docker",
@@ -209,11 +208,13 @@ func Start(flags Flag) {
 
 func Stop() {
 
+	validate()
+
 	command(
 		"docker-compose",
 		"-f",
 		DOCKER_COMPOSE,
-		"kill",
+		"down",
 	)
 
 	fmt.Println("envcontainer: stopped")
@@ -275,6 +276,15 @@ func Delete(flags Flag) {
 
 	fmt.Println("envcontainer: configuration deleted")
 
+}
+
+func validate() {
+	stdout, err := exec.Command("docker", "info").Output()
+
+	if strings.Contains(string(stdout), "unix:///var/run/docker.sock") {
+
+		check("Is the docker daemon running?", err)
+	}
 }
 
 func command(name string, args ...string) {
