@@ -85,10 +85,10 @@ func Init(flags Flag) {
 
 		if !*override {
 
-			fmt.Print("envcontainer has exists in this project, do you're have override? (yes/no): ")
+			fmt.Print("already exists in this project, do you're have override? (yes/no): ")
 			reader := bufio.NewReader(os.Stdin)
 			confirmation, _, err := reader.ReadLine()
-			check("envcontainer: error to read confirmation input, check input", err)
+			check("error to read confirmation input, check input", err)
 
 			v := string(confirmation)
 
@@ -98,7 +98,7 @@ func Init(flags Flag) {
 			case "no":
 				return
 			default:
-				fmt.Println("envcontainer: values accepted are 'yes' or 'no'")
+				fmt.Println("values accepted are 'yes' or 'no'")
 				return
 			}
 
@@ -142,10 +142,10 @@ func Init(flags Flag) {
 	data := dc.Marshal()
 
 	err := os.MkdirAll(PATH_DEFAULT, 0755)
-	check("envcontainer: error to create folders, check permissions", err)
+	check("error to create folders, check permissions", err)
 
 	createFile := func(name string, data []byte) {
-		check("envcontainer: error to crete config files, check permissions", ioutil.WriteFile(name, data, 0644))
+		check("error to crete config files, check permissions", ioutil.WriteFile(name, data, 0644))
 	}
 
 	createFile(DOCKERFILE, []byte("FROM "+*values["image"].valueString))
@@ -207,18 +207,6 @@ func Start(flags Flag) {
 	)
 }
 
-func command(name string, args ...string) {
-	cmd := exec.Command(name, args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stdout = os.Stderr
-	err := cmd.Run()
-
-	if err != nil {
-		check("envcontainer: command failed, check envcontainer configs and permisstions", err)
-	}
-}
-
 func Stop() {
 
 	command(
@@ -258,7 +246,7 @@ func Delete(flags Flag) {
 		fmt.Print("do you're have sure? (yes/no): ")
 		reader := bufio.NewReader(os.Stdin)
 		confirmation, _, err := reader.ReadLine()
-		check("envcontainer: error to read confirmation input, check input", err)
+		check("error to read confirmation input, check input", err)
 
 		v := string(confirmation)
 
@@ -283,14 +271,27 @@ func Delete(flags Flag) {
 	)
 
 	err := os.RemoveAll(".envcontainer")
-	check("envcontainer: cannot remove files, check permissions", err)
+	check("cannot remove files, check permissions", err)
 
 	fmt.Println("envcontainer: configuration deleted")
 
 }
 
+func command(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+
+	if err != nil {
+		check("command failed, check envcontainer configs.", err)
+	}
+}
+
 func check(message string, e error) {
 	if e != nil {
-		panic(message + ": " + e.Error())
+		fmt.Println("envcontainer: " + message + "\n" + e.Error())
+		os.Exit(0)
 	}
 }
