@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/options"
 )
@@ -11,18 +13,14 @@ var cmds options.CommandConfig
 
 func init() {
 
-	// dir, err := os.Getwd()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
+	dir, _ := os.Getwd()
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		options.INIT: options.Command{
 			Flags: options.Flag{
 				Command: options.INIT,
 				Values: map[string]options.Values{
 					"project": options.Values{
-						Defaulvalue: "app",
+						Defaulvalue: strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1],
 						Description: "project name",
 					},
 					"listener": options.Values{
@@ -30,7 +28,7 @@ func init() {
 						Description: "docker comtainer port listener",
 					},
 					"envfile": options.Values{
-						Defaulvalue: ".envcontainer/compose/env/.variables",
+						Defaulvalue: ".envcontainer/compose/.env",
 						Description: "docker environemt file",
 					},
 					"image": options.Values{
