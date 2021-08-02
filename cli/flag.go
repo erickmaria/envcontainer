@@ -1,4 +1,4 @@
-package options
+package cli
 
 import (
 	"flag"
@@ -10,8 +10,8 @@ import (
 var getBools = map[string]string{}
 
 type Values struct {
-	valueString *string
-	valueBool   *bool
+	ValueString *string
+	ValueBool   *bool
 	Defaulvalue string
 	Description string
 }
@@ -28,14 +28,14 @@ func (f *Flag) Register() {
 	for k, v := range f.Values {
 
 		if pased, err := strconv.ParseBool(v.Defaulvalue); err == nil {
-			v.valueBool = cmdFlang.Bool(k, pased, v.Description)
+			v.ValueBool = cmdFlang.Bool(k, pased, v.Description)
 
 			f.Values[k] = v
 			getBools[k] = v.Defaulvalue
 			continue
 		}
 
-		v.valueString = cmdFlang.String(k, v.Defaulvalue, v.Description)
+		v.ValueString = cmdFlang.String(k, v.Defaulvalue, v.Description)
 		f.Values[k] = v
 	}
 
