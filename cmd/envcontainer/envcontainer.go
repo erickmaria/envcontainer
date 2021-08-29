@@ -5,7 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ErickMaria/envcontainer/internal/options"
+	options "github.com/ErickMaria/envcontainer/pkg/cli"
+	cmps "github.com/ErickMaria/envcontainer/internal/compose"
 )
 
 var cmd *options.Command
@@ -14,28 +15,15 @@ var cmds options.CommandConfig
 func init() {
 
 	dir, _ := os.Getwd()
+	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
+	compose := cmps.Compose{}
+	template := cmps.NewTemplate()
+
 	cmd, cmds = options.NewCommand(options.CommandConfig{
-		options.INIT: options.Command{
+		"init": options.Command{
 			Flags: options.Flag{
-				Command: options.INIT,
 				Values: map[string]options.Values{
-					"project": options.Values{
-						Defaulvalue: strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1],
-						Description: "project name",
-					},
-					"listener": options.Values{
-						Defaulvalue: "",
-						Description: "docker comtainer port listener",
-					},
-					"envfile": options.Values{
-						Defaulvalue: ".envcontainer/compose/.env",
-						Description: "docker environemt file",
-					},
-					"image": options.Values{
-						Defaulvalue: "ubuntu",
-						Description: "dockerfile image",
-					},
-					"no-build": options.Values{
+					"build": options.Values{
 						Defaulvalue: "false",
 						Description: "init envcontainer and build configs",
 					},
@@ -45,23 +33,34 @@ func init() {
 					},
 				},
 			},
+			Quetion: options.Quetion{
+				Queries: map[string]options.Query{
+					"1_project": options.Query{
+						Scene: "project_name [" + projectName + "]: ",
+						Value: projectName,
+					},
+					"2_image": options.Query{
+						Scene: "base_image [ubuntu:latest]: ",
+						Value: "ubuntu:latest",
+					},
+					"3_ports": options.Query{
+						Scene: "container_ports [\"80:80\"]: ",
+					},
+				},
+			},
 			Exec: func() {
-				options.Init(cmd.Flags)
+				template.Init(cmd)
 			},
-			Desc: "create envcontainer blueprint",
+			Desc: "create envcontainer template",
 		},
-		options.BUILD: options.Command{
-			Flags: options.Flag{
-				Command: options.BUILD,
-			},
+		"build": options.Command{
 			Desc: "prepare envcontainer to connect on container",
 			Exec: func() {
-				options.Build()
+				compose.Build()
 			},
 		},
-		options.START: options.Command{
+		"up": options.Command{
 			Flags: options.Flag{
-				Command: options.START,
 				Values: map[string]options.Values{
 					"shell": options.Values{
 						Defaulvalue: "bash",
@@ -71,21 +70,17 @@ func init() {
 			},
 			Desc: "creates the container and links to the project",
 			Exec: func() {
-				options.Start(cmd.Flags)
+				compose.Up(*cmd.Flags.Values["shell"].ValueString)
 			},
 		},
-		options.STOP: options.Command{
-			Flags: options.Flag{
-				Command: options.STOP,
-			},
+		"down": options.Command{
 			Desc: "delete envcontainer container",
 			Exec: func() {
-				options.Stop()
+				compose.Down()
 			},
 		},
-		options.DELETE: options.Command{
+		"delete": options.Command{
 			Flags: options.Flag{
-				Command: options.DELETE,
 				Values: map[string]options.Values{
 					"auto-approve": options.Values{
 						Description: "skip confirmation",
@@ -94,17 +89,18 @@ func init() {
 				},
 			},
 			Exec: func() {
-				options.Delete(cmd.Flags)
+				template.Delete(cmd)
+				compose.Delete()
 			},
 			Desc: "delete envcontainer configs",
 		},
-		options.VERSION: options.Command{
+		"version": options.Command{
 			Exec: func() {
-				fmt.Println("0.0.1-alpha")
+				fmt.Println("0.2.0")
 			},
 			Desc: "show envcontainer version",
 		},
-		options.HELP: options.Command{
+		"help": options.Command{
 			Exec: func() {
 				options.Help(cmds)
 			},
