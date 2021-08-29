@@ -121,3 +121,17 @@ func (template *Template) Delete(commad *cli.Command) {
 		}
 	}
 }
+
+func (template *Template) CheckEnvcontainerExists(flag *cli.Flag) {
+
+	override := flag.Values["override"].ValueBool
+
+	if _, err := os.Stat(template.Home); !os.IsNotExist(err) {
+
+		if !*override {
+
+			fmt.Printf("%s already exists, use --override\n", template.Home)
+			os.Exit(0)
+		}
+	}
+}

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	options "github.com/ErickMaria/envcontainer/pkg/cli"
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
+	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
 var cmd *options.Command
@@ -47,6 +47,9 @@ func init() {
 						Scene: "container_ports [\"80:80\"]: ",
 					},
 				},
+			},
+			RunAfterAll: func() {
+				template.CheckEnvcontainerExists(&cmd.Flags)
 			},
 			Exec: func() {
 				template.Init(cmd)
