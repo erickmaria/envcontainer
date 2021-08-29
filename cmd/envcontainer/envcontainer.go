@@ -48,6 +48,9 @@ func init() {
 					},
 				},
 			},
+			RunAfterAll: func() {
+				template.CheckEnvcontainerExists(&cmd.Flags)
+			},
 			Exec: func() {
 				template.Init(cmd)
 			},
