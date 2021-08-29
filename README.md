@@ -41,7 +41,7 @@ By default init command already execute build command to build Dockerfile and up
 ### Start
 
 ```bash
-envcontainer start
+envcontainer up
 ```
 
 Using this commmand envcontainer will enter inside container shell.
@@ -49,7 +49,7 @@ Using this commmand envcontainer will enter inside container shell.
 ### Stop
 
 ```bash
-envcontainer stop
+envcontainer down
 ```
 
 
