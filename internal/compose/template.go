@@ -1,4 +1,4 @@
-package common
+package compose
 
 import (
 	"bufio"
@@ -7,11 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ErickMaria/envcontainer/cli"
-)
-
-var (
-	COMPOSE string = ".envcontainer/compose/docker-compose.yaml"
+	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
 type Template struct {
