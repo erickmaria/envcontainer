@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	options "github.com/ErickMaria/envcontainer/pkg/cli"
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
+	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
 var cmd *options.Command
@@ -96,7 +96,7 @@ func init() {
 		},
 		"version": options.Command{
 			Exec: func() {
-				fmt.Println("0.2.0")
+				fmt.Println("0.3.0")
 			},
 			Desc: "show envcontainer version",
 		},
