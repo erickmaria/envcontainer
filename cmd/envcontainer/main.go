@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
+	"github.com/ErickMaria/envcontainer/internal/envconfig"
 	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
@@ -14,10 +15,13 @@ var cmds options.CommandConfig
 
 func init() {
 
+	envconfig.CreateIfNotExists()
+
 	dir, _ := os.Getwd()
 	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
 	compose := cmps.Compose{}
 	template := cmps.NewTemplate()
+	config := envconfig.Config{}
 
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		"init": options.Command{
@@ -48,7 +52,7 @@ func init() {
 					},
 				},
 			},
-			RunAfterAll: func() {
+			RunBeforeAll: func() {
 				template.CheckEnvcontainerExists(&cmd.Flags)
 			},
 			Exec: func() {
@@ -82,6 +86,28 @@ func init() {
 				compose.Down()
 			},
 		},
+		"config-save": options.Command{
+			Exec: func() {
+				config.Save()
+			},
+		},
+		"config-list": options.Command{
+			Exec: func() {
+				config.List()
+			},
+		},
+		"config-get": options.Command{
+			Flags: options.Flag{
+				Values: map[string]options.Values{
+					"name": options.Values{
+						Description: "envcontainer configuration name",
+					},
+				},
+			},
+			Exec: func() {
+				config.Get(cmd)
+			},
+		},
 		"delete": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
@@ -91,15 +117,17 @@ func init() {
 					},
 				},
 			},
-			Exec: func() {
+			RunBeforeAll: func() {
 				template.Delete(cmd)
+			},
+			Exec: func() {
 				compose.Delete()
 			},
 			Desc: "delete envcontainer configs",
 		},
 		"version": options.Command{
 			Exec: func() {
-				fmt.Println("0.3.0")
+				fmt.Println("0.3.3")
 			},
 			Desc: "show envcontainer version",
 		},

@@ -3,10 +3,11 @@ package compose
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/ErickMaria/envcontainer/internal/pkg/handler/errors"
+	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
@@ -20,8 +21,8 @@ type Template struct {
 
 func NewTemplate() Template {
 	return Template{
-		Home:        ".envcontainer",
-		PathDefault: ".envcontainer/compose",
+		Home:        HOME,
+		PathDefault: PATH_COMPLETE,
 		Dockerfile:  ".envcontainer/Dockerfile",
 		Compose:     COMPOSE,
 		Env:         ".envcontainer/compose/.env",
@@ -76,18 +77,14 @@ func (template *Template) Init(commad *cli.Command) {
 
 	data := compose.Marshal()
 
-	err := os.MkdirAll(template.PathDefault, 0755)
-	compose.check("error to create folders, check permissions", err)
+	err := syscmd.CreatePath(template.PathDefault)
+	errors.Throw("envcontainer: error to create folders, check permissions", err)
 
-	createFile := func(name string, data []byte) {
-		compose.check("error to crete config files, check permissions", ioutil.WriteFile(name, data, 0644))
-	}
-
-	createFile(template.Dockerfile, []byte("FROM "+queries["2_image"].Value))
-	createFile(template.Compose, data)
+	syscmd.CreateFile(template.Dockerfile, []byte("FROM "+queries["2_image"].Value))
+	syscmd.CreateFile(template.Compose, data)
 
 	envContent := fmt.Sprintf("COMPOSE_PROJECT_NAME=%s\nCOMPOSE_IGNORE_ORPHANS=True", queries["1_project"].Value)
-	createFile(template.Env, []byte(envContent))
+	syscmd.CreateFile(template.Env, []byte(envContent))
 
 	if *values["build"].ValueBool {
 		compose.Build()
@@ -104,7 +101,7 @@ func (template *Template) Delete(commad *cli.Command) {
 		reader := bufio.NewReader(os.Stdin)
 		confirmation, _, err := reader.ReadLine()
 		if err != nil {
-			panic(err)
+			errors.Throw("", err)
 		}
 
 		v := string(confirmation)
@@ -126,10 +123,9 @@ func (template *Template) CheckEnvcontainerExists(flag *cli.Flag) {
 
 	override := flag.Values["override"].ValueBool
 
-	if _, err := os.Stat(template.Home); !os.IsNotExist(err) {
+	if syscmd.ExistsPath(template.Home) {
 
 		if !*override {
-
 			fmt.Printf("%s already exists, use --override\n", template.Home)
 			os.Exit(0)
 		}

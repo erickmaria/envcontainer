@@ -9,11 +9,11 @@ import (
 type CommandConfig map[string]Command
 
 type Command struct {
-	Flags       Flag
-	Quetion     Quetion
-	RunAfterAll func()
-	Exec        func()
-	Desc        string
+	Flags        Flag
+	Quetion      Quetion
+	RunBeforeAll func()
+	Exec         func()
+	Desc         string
 }
 
 func NewCommand(cc CommandConfig) (*Command, CommandConfig) {
@@ -34,7 +34,9 @@ func NewCommand(cc CommandConfig) (*Command, CommandConfig) {
 
 func (c Command) Listener() {
 	c.Flags.Register()
-	c.RunAfterAll()
+	if c.RunBeforeAll != nil {
+		c.RunBeforeAll()
+	}
 	c.Quetion.Make()
 	c.Exec()
 }

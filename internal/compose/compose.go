@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/ErickMaria/envcontainer/internal/pkg/handler/errors"
+	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"gopkg.in/yaml.v2"
 )
 
@@ -135,8 +137,7 @@ func (compose *Compose) Delete() {
 		"all",
 	)
 
-	err := os.RemoveAll(".envcontainer")
-	compose.check("cannot remove files, check permissions", err)
+	errors.Throw("cannot remove files, check permissions", syscmd.DeletePath(HOME))
 
 	fmt.Println("envcontainer: configuration deleted")
 
@@ -150,7 +151,7 @@ func (compose *Compose) command(name string, args ...string) {
 	err := cmd.Run()
 
 	if err != nil {
-		compose.check("command failed, check envcontainer configs.", err)
+		errors.Throw("command failed, check envcontainer configs.", err)
 	}
 }
 
@@ -159,13 +160,6 @@ func (compose *Compose) validate() {
 
 	if strings.Contains(string(stdout), "unix:///var/run/docker.sock") {
 
-		compose.check("Is the docker daemon running?", err)
-	}
-}
-
-func (compose *Compose) check(message string, e error) {
-	if e != nil {
-		fmt.Println("envcontainer: " + message + "\n" + e.Error())
-		os.Exit(0)
+		errors.Throw("Is the docker daemon running?", err)
 	}
 }
