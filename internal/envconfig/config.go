@@ -100,7 +100,7 @@ func (config *Config) Get(command *cli.Command) {
 
 	var filepath string
 	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), "#") {
+		if strings.HasPrefix(scanner.Text(), "#.envcontainer/") {
 			filepath = scanner.Text()[1:len(scanner.Text())]
 			continue
 		}
