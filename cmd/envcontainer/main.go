@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
+	"github.com/ErickMaria/envcontainer/internal/envasync"
 	"github.com/ErickMaria/envcontainer/internal/envconfig"
 	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
@@ -22,6 +23,7 @@ func init() {
 	compose := cmps.Compose{}
 	template := cmps.NewTemplate()
 	config := envconfig.Config{}
+	upasync := envasync.UpAsync{}
 
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		"init": options.Command{
@@ -106,6 +108,18 @@ func init() {
 			},
 			Exec: func() {
 				config.Get(cmd)
+			},
+		},
+		"async": options.Command{
+			Flags: options.Flag{
+				Values: map[string]options.Values{
+					"name": options.Values{
+						Description: "envcontainer configuration name",
+					},
+				},
+			},
+			Exec: func() {
+				upasync.Start(cmd)
 			},
 		},
 		"delete": options.Command{

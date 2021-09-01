@@ -73,29 +73,11 @@ func (config *Config) List() {
 
 func (config *Config) Get(command *cli.Command) {
 
-	envconfigName := command.Flags.Values["name"].ValueString
-
-	if *envconfigName == "" {
-		herrors.Throw("use --name to get configuration", errors.New(""))
-	}
-
-	if !syscmd.ExistsPath(Home() + "/" + *envconfigName) {
-		herrors.Throw(fmt.Sprintf("not found %s folder", *envconfigName), errors.New(""))
-	}
-
-	envcontainercfg := Home() + "/" + *envconfigName + "/" + envconfigfile
-	if !syscmd.ExistsPath(envcontainercfg) {
-		herrors.Throw(fmt.Sprintf("not found %s file ", envconfigfile), errors.New(""))
-	}
-
-	b, err := ioutil.ReadFile(envcontainercfg)
-	herrors.Throw("", err)
+	scanner := GetConfig(*command.Flags.Values["name"].ValueString)
 
 	syscmd.DeletePath(compose.HOME)
 
-	scanner := bufio.NewScanner(bytes.NewReader(b))
-
-	err = syscmd.CreatePath(compose.PATH_COMPLETE)
+	err := syscmd.CreatePath(compose.PATH_COMPLETE)
 	herrors.Throw("", err)
 
 	var filepath string
@@ -104,10 +86,52 @@ func (config *Config) Get(command *cli.Command) {
 			filepath = scanner.Text()[1:len(scanner.Text())]
 			continue
 		}
-
 		syscmd.AppendFile(filepath, []byte(scanner.Text()+"\n"))
-		herrors.Throw("", err)
 	}
 
 	fmt.Println("envcontainer get configuration done!")
+
+}
+
+func GetConfig(envconfigName string) *bufio.Scanner {
+
+	if envconfigName == "" {
+		herrors.Throw("use --name to get configuration", errors.New(""))
+	}
+
+	if !syscmd.ExistsPath(Home() + "/" + envconfigName) {
+		herrors.Throw(fmt.Sprintf("not found %s folder", envconfigName), errors.New(""))
+	}
+
+	envcontainercfg := Home() + "/" + envconfigName + "/" + envconfigfile
+	if !syscmd.ExistsPath(envcontainercfg) {
+		herrors.Throw(fmt.Sprintf("not found %s file ", envconfigfile), errors.New(""))
+	}
+
+	b, err := ioutil.ReadFile(envcontainercfg)
+	herrors.Throw("", err)
+
+	return bufio.NewScanner(bytes.NewReader(b))
+}
+
+func GetFileDataByMark(scanner *bufio.Scanner, filename string) []byte {
+
+	var data, old, new string
+	for scanner.Scan() {
+		if strings.HasPrefix(scanner.Text(), "#.envcontainer/") {
+			old = scanner.Text()[1:len(scanner.Text())]
+			if strings.HasSuffix(scanner.Text(), filename) {
+				new = old
+				continue
+			}
+			if old == new {
+				break
+			}
+		}
+		if old == new {
+			data = data + scanner.Text() + "\n"
+		}
+	}
+
+	return []byte(data)
 }
