@@ -141,7 +141,7 @@ func init() {
 		},
 		"version": options.Command{
 			Exec: func() {
-				fmt.Println("0.4.0")
+				fmt.Println("0.5.0")
 			},
 			Desc: "show envcontainer version",
 		},
