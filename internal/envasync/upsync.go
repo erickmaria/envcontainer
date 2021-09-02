@@ -41,9 +41,10 @@ func (UpAsync) Start(command *cli.Command) {
 	errors.Throw("", err)
 
 	id := uuid.New()
-	envTmp := "/tmp/" + id.String()
+	envTmp := "/tmp/" + "envconainer-exec-" + id.String()
 
 	compose.Services.Environment.Volumes[0].Source = pwd
+	compose.Services.Environment.Volumes[0].Target = "/home/envcontainer/" + strings.Split(pwd, "/")[len(strings.Split(pwd, "/"))-1]
 	compose.Services.Environment.EnvFile[0] = envTmp + "/compose/.env"
 	compose.Services.Environment.ContainerName = id.String()
 	compose.Services.Environment.WorkingDir = "/home/envcontainer/" + strings.Split(pwd, "/")[len(strings.Split(pwd, "/"))-1]
