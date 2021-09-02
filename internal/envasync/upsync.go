@@ -98,7 +98,6 @@ func build(basedir string) {
 			"-f",
 			basedir+"/compose/docker-compose.yaml",
 			"build",
-			"-q",
 		)
 		return
 	}
@@ -108,5 +107,6 @@ func build(basedir string) {
 		"-f",
 		basedir+"/compose/docker-compose.yaml",
 		"build",
+		"-q",
 	)
 }
