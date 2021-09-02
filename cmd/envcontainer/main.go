@@ -8,6 +8,7 @@ import (
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
 	"github.com/ErickMaria/envcontainer/internal/envasync"
 	"github.com/ErickMaria/envcontainer/internal/envconfig"
+	"github.com/ErickMaria/envcontainer/pkg/cli"
 	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
@@ -31,11 +32,11 @@ func init() {
 				Values: map[string]options.Values{
 					"build": options.Values{
 						Defaulvalue: "false",
-						Description: "init envcontainer and build configs",
+						Description: "build a image using envcontainer configuration",
 					},
 					"override": options.Values{
 						Defaulvalue: "false",
-						Description: "override envcontainer configs",
+						Description: "override envcontainer configuration",
 					},
 				},
 			},
@@ -60,15 +61,15 @@ func init() {
 			Exec: func() {
 				template.Init(cmd)
 			},
-			Desc: "create envcontainer template",
+			Desc: "initialize the default template in the current directory",
 		},
 		"build": options.Command{
-			Desc: "prepare envcontainer to connect on container",
+			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
 				compose.Build()
 			},
 		},
-		"up": options.Command{
+		"run": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
 					"shell": options.Values{
@@ -77,28 +78,30 @@ func init() {
 					},
 				},
 			},
-			Desc: "creates the container and links to the project",
+			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
 				compose.Up(*cmd.Flags.Values["shell"].ValueString)
 			},
 		},
-		"down": options.Command{
-			Desc: "delete envcontainer container",
+		"stop": options.Command{
+			Desc: "stop all envcontainer configuration running in the current directory",
 			Exec: func() {
 				compose.Down()
 			},
 		},
-		"config-save": options.Command{
+		"save": options.Command{
 			Exec: func() {
 				config.Save()
 			},
+			Desc: "save your local .envcontainer directory",
 		},
-		"config-list": options.Command{
+		"list": options.Command{
 			Exec: func() {
 				config.List()
 			},
+			Desc: "list all your .envcontainer directory saved",
 		},
-		"config-get": options.Command{
+		"get": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
 					"name": options.Values{
@@ -109,8 +112,9 @@ func init() {
 			Exec: func() {
 				config.Get(cmd)
 			},
+			Desc: "get .envcontainer and put in current directory",
 		},
-		"async": options.Command{
+		"exec": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
 					"name": options.Values{
@@ -121,27 +125,28 @@ func init() {
 			Exec: func() {
 				upasync.Start(cmd)
 			},
+			Desc: "execute an .envcontainer on the current directory without saving it locally",
 		},
-		"delete": options.Command{
-			Flags: options.Flag{
-				Values: map[string]options.Values{
-					"auto-approve": options.Values{
-						Description: "skip confirmation",
-						Defaulvalue: "false",
-					},
-				},
-			},
-			RunBeforeAll: func() {
-				template.Delete(cmd)
-			},
-			Exec: func() {
-				compose.Delete()
-			},
-			Desc: "delete envcontainer configs",
-		},
+		// "remove": options.Command{
+		// 	Flags: options.Flag{
+		// 		Values: map[string]options.Values{
+		// 			"auto-approve": options.Values{
+		// 				Description: "skip confirmation",
+		// 				Defaulvalue: "false",
+		// 			},
+		// 		},
+		// 	},
+		// 	RunBeforeAll: func() {
+		// 		template.Delete(cmd)
+		// 	},
+		// 	Exec: func() {
+		// 		compose.Delete()
+		// 	},
+		// 	Desc: "delete local .envcontainer",
+		// },
 		"version": options.Command{
 			Exec: func() {
-				fmt.Println("0.5.0")
+				fmt.Println("Version: 0.5.0")
 			},
 			Desc: "show envcontainer version",
 		},
@@ -149,7 +154,7 @@ func init() {
 			Exec: func() {
 				options.Help(cmds)
 			},
-			Desc: "Run 'envcontainer COMMAND' for more information on a command. See: 'envcontainer help'",
+			Desc: "Run " + cli.ExecutableName() + " COMMAND' for more information on a command. See: '" + cli.ExecutableName() + " help'",
 		},
 	})
 

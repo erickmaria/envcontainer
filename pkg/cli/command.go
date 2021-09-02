@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -24,7 +25,7 @@ func NewCommand(cc CommandConfig) (*Command, CommandConfig) {
 	}
 
 	if !contains(cc) {
-		fmt.Printf(executableName()+": '%s' is not a valid command\n%s\n", os.Args[1], cc["HELP"].Desc)
+		fmt.Printf(ExecutableName()+": '%s' is not a valid command\n%s\n", os.Args[1], cc["HELP"].Desc)
 		os.Exit(0)
 	}
 
@@ -61,25 +62,39 @@ func contains(cc CommandConfig) bool {
 
 func Help(descs map[string]Command) {
 
-	fmt.Println("\nUsage: " + executableName() + " COMMAND --FLAGS")
+	fmt.Println("\nUsage: " + ExecutableName() + " COMMAND --FLAGS")
 
 	fmt.Println("\nCommands")
 
-	for commandKey, comandValue := range descs {
-		fmt.Printf("%s:     \t%v\n", commandKey, descs[commandKey].Desc)
-		for flagKey, flagValue := range comandValue.Flags.Values {
-			fmt.Printf("    --%s:     \t%v\n", flagKey, flagValue.Description)
-		}
-
+	sortDescs := make([]string, 0, len(descs))
+	for k := range descs {
+		sortDescs = append(sortDescs, k)
 	}
+
+	sort.Strings(sortDescs)
+	for _, v := range sortDescs {
+		fmt.Printf("%s:     \t\t%v\n", v, descs[v].Desc)
+		for flagKey, flagValue := range  descs[v].Flags.Values {
+			fmt.Printf("    --%s:     \t\t%v\n", flagKey, flagValue.Description)
+		}
+	}
+
+	// for commandKey, comandValue := range descs {
+	// 	fmt.Printf("%s:     \t\t%v\n", commandKey, descs[commandKey].Desc)
+	// 	for flagKey, flagValue := range comandValue.Flags.Values {
+	// 		fmt.Printf("    --%s:     \t\t%v\n", flagKey, flagValue.Description)
+	// 	}
+
+	// }
 
 	fmt.Println()
 }
 
-func executableName() string {
+func ExecutableName() string {
 	executable, err := os.Executable()
 	if err != nil {
 
 	}
-	return executable
+	executableNameSplit := strings.Split(executable, "/")
+	return executableNameSplit[len(executableNameSplit)-1]
 }
