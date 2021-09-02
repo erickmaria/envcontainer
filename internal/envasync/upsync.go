@@ -57,12 +57,13 @@ func (UpAsync) Start(command *cli.Command) {
 
 	syscmd.CreateFile(envTmp+"/Dockerfile", async.Dockerfile)
 
+	build(envTmp)
+
 	syscmd.Exec(
 		"docker-compose",
 		"-f",
 		envTmp+"/compose/docker-compose.yaml",
 		"up",
-		"--build",
 		"-d",
 	)
 
@@ -86,4 +87,26 @@ func (UpAsync) Start(command *cli.Command) {
 }
 func (UpAsync) Exit(command *cli.Command) {
 
+}
+
+func build(basedir string) {
+
+	debug := os.Getenv("ENVCONTAINER_DEBUG")
+	if debug != "" && strings.ToLower(debug) == "true" {
+		syscmd.Exec(
+			"docker-compose",
+			"-f",
+			basedir+"/compose/docker-compose.yaml",
+			"build",
+		)
+		return
+	}
+
+	syscmd.Exec(
+		"docker-compose",
+		"-f",
+		basedir+"/compose/docker-compose.yaml",
+		"build",
+		"-q",
+	)
 }
