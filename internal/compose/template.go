@@ -50,7 +50,7 @@ func (template *Template) Init(commad *cli.Command) {
 		Version: "3.6",
 		Services: Services{
 			Environment: Environment{
-				ContainerName: queries["1_project"].Value,
+				ContainerName: strings.ToLower(queries["1_project"].Value),
 				Volumes: []Volumes{
 					Volumes{
 						Type:   "bind",
@@ -62,7 +62,7 @@ func (template *Template) Init(commad *cli.Command) {
 					Dockerfile: "Dockerfile",
 					Context:    "../",
 				},
-				Image:      "envcontainer/" + queries["1_project"].Value,
+				Image:      strings.ToLower("envcontainer/" + queries["1_project"].Value),
 				Ports:      ports,
 				WorkingDir: "/home/envcontainer/" + queries["1_project"].Value,
 				EnvFile: []string{
