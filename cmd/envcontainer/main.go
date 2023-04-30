@@ -89,7 +89,7 @@ func init() {
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
-				err := docker.Run(ctx)
+				err := docker.Start(ctx)
 				if err != nil {
 					panic(err)
 				}

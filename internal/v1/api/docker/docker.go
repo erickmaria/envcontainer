@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -55,7 +56,16 @@ func (docker *Docker) Build(ctx context.Context) error {
 	return nil
 }
 
-func (docker *Docker) Run(ctx context.Context) error {
+func (docker *Docker) Start(ctx context.Context) error {
+
+	containerID, err := docker.getContainerID(ctx, "envcontainer")
+	if err != nil {
+		return err
+	}
+
+	if containerID != "" {
+		return docker.exec(ctx, containerID)
+	}
 
 	// Create the container
 	containerResponse, err := docker.cli.ContainerCreate(ctx, &container.Config{
@@ -84,10 +94,37 @@ func (docker *Docker) Run(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	return docker.exec(ctx, containerResponse.ID)
 }
 
 func (docker *Docker) Stop(ctx context.Context) error {
+
+	containerID, err := docker.getContainerID(ctx, "envcontainer")
+	if err != nil {
+		return err
+	}
+
+	if containerID == "" {
+		fmt.Println("Not container running")
+		return nil
+	}
+
+	// Stopping the container
+	fmt.Print("Stopping container ", containerID[:10], "... ")
+
+	// Remove the container
+	docker.cli.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{
+		Force:         true,
+		RemoveVolumes: true,
+	})
+
+	fmt.Println("Success!")
+	time.Sleep(1 * time.Second)
+
+	return nil
+}
+
+func (docker *Docker) getContainerID(ctx context.Context, containerName string) (string, error) {
 
 	containers, err := docker.cli.ContainerList(ctx, types.ContainerListOptions{
 		Limit: 1,
@@ -96,31 +133,43 @@ func (docker *Docker) Stop(ctx context.Context) error {
 			Value: "envcontainer",
 		}),
 	})
-	if err != nil {
-		return err
-	}
+
 	if len(containers) == 0 {
-        panic("Container not found")
-    }
+		return "", nil
+	}
 
-	containerID := containers[0].ID
+	if err != nil {
+		return "", err
+	}
 
-	// Stopping the container
-	fmt.Print("Stopping container ", containerID[:10], "... ")
-	
-	// err = docker.cli.ContainerStop(ctx, containerID, container.StopOptions{})
-	// if err != nil {
-	// 	return err
-	// }
+	return containers[0].ID, nil
+}
 
-	// Remove the container
-	docker.cli.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{
-		Force: true,
-		RemoveVolumes: true,
+func (docker *Docker) exec(ctx context.Context, containerID string) error {
+
+	execID, err := docker.cli.ContainerExecCreate(ctx, containerID, types.ExecConfig{
+		AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: true,
+        Cmd: []string{
+            "echo", "Hello from inside the container",
+        },
 	})
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Success!")
-	time.Sleep(1 * time.Second)
+	// Attach to the exec instance to read its output
+	execResp, err := docker.cli.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{})
+	if err != nil {
+		panic(err)
+	}
+	defer execResp.Close()
+
+	// Print the output from the command
+	var buf bytes.Buffer
+	io.Copy(os.Stdout, io.TeeReader(execResp.Reader, &buf))
 
 	return nil
 }
