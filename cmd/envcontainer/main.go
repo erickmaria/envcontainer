@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
 	"github.com/ErickMaria/envcontainer/internal/envasync"
 	"github.com/ErickMaria/envcontainer/internal/envconfig"
+	"github.com/ErickMaria/envcontainer/internal/v1/api/docker"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
@@ -25,6 +27,9 @@ func init() {
 	template := cmps.NewTemplate()
 	config := envconfig.Config{}
 	upasync := envasync.UpAsync{}
+
+	// # DOCKER API
+	docker := docker.NewDocker()
 
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		"init": options.Command{
@@ -66,7 +71,7 @@ func init() {
 		"build": options.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
-				compose.Build()
+				docker.Build(context.Background())
 			},
 		},
 		"run": options.Command{
