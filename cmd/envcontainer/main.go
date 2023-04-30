@@ -23,12 +23,13 @@ func init() {
 
 	dir, _ := os.Getwd()
 	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
-	compose := cmps.Compose{}
+	// compose := cmps.Compose{}
 	template := cmps.NewTemplate()
 	config := envconfig.Config{}
 	upasync := envasync.UpAsync{}
 
 	// # DOCKER API
+	ctx := context.Background()
 	docker := docker.NewDocker()
 
 	cmd, cmds = options.NewCommand(options.CommandConfig{
@@ -71,10 +72,13 @@ func init() {
 		"build": options.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
-				docker.Build(context.Background())
+				err := docker.Build(ctx)
+				if err != nil {
+					panic(err)
+				}
 			},
 		},
-		"run": options.Command{
+		"start": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
 					"shell": options.Values{
@@ -85,13 +89,19 @@ func init() {
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
-				compose.Up(*cmd.Flags.Values["shell"].ValueString)
+				err := docker.Run(ctx)
+				if err != nil {
+					panic(err)
+				}
 			},
 		},
 		"stop": options.Command{
 			Desc: "stop all envcontainer configuration running in the current directory",
 			Exec: func() {
-				compose.Down()
+				err := docker.Stop(ctx)
+				if err != nil {
+					panic(err)
+				}
 			},
 		},
 		"save": options.Command{
