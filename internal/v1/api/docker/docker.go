@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -56,7 +55,7 @@ func (docker *Docker) Build(ctx context.Context) error {
 	return nil
 }
 
-func (docker *Docker) Start(ctx context.Context) error {
+func (docker *Docker) Start(ctx context.Context, autoStop bool) error {
 
 	containerID, err := docker.getContainerID(ctx, "envcontainer")
 	if err != nil {
@@ -64,7 +63,7 @@ func (docker *Docker) Start(ctx context.Context) error {
 	}
 
 	if containerID != "" {
-		return docker.exec(ctx, containerID)
+		return docker.exec(ctx, containerID, autoStop)
 	}
 
 	// Create the container
@@ -94,7 +93,7 @@ func (docker *Docker) Start(ctx context.Context) error {
 		return err
 	}
 
-	return docker.exec(ctx, containerResponse.ID)
+	return docker.exec(ctx, containerResponse.ID, autoStop)
 }
 
 func (docker *Docker) Stop(ctx context.Context) error {
@@ -145,31 +144,47 @@ func (docker *Docker) getContainerID(ctx context.Context, containerName string) 
 	return containers[0].ID, nil
 }
 
-func (docker *Docker) exec(ctx context.Context, containerID string) error {
+func (docker *Docker) exec(ctx context.Context, containerID string, autoStop bool) error {
 
 	execID, err := docker.cli.ContainerExecCreate(ctx, containerID, types.ExecConfig{
-		AttachStdin: true,
-        AttachStdout: true,
-        AttachStderr: true,
-        Tty: true,
-        Cmd: []string{
-            "echo", "Hello from inside the container",
-        },
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Privileged:   true,
+		Tty:          true,
+		Cmd: []string{
+			"/bin/bash",
+		},
 	})
 	if err != nil {
 		panic(err)
 	}
 
 	// Attach to the exec instance to read its output
-	execResp, err := docker.cli.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{})
+	execResp, err := docker.cli.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{
+		Tty: true,
+	})
 	if err != nil {
 		panic(err)
 	}
 	defer execResp.Close()
 
-	// Print the output from the command
-	var buf bytes.Buffer
-	io.Copy(os.Stdout, io.TeeReader(execResp.Reader, &buf))
+	// Copy input/output between the terminal and the container
+	go func() {
+		_, err = io.Copy(os.Stdout, execResp.Reader)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+	}()
+
+	_, err = io.Copy(execResp.Conn, os.Stdin)
+	if err != nil && err != io.EOF {
+		panic(err)
+	}
+
+	if autoStop {
+		return docker.Stop(ctx)
+	}
 
 	return nil
 }

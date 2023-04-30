@@ -23,7 +23,6 @@ func init() {
 
 	dir, _ := os.Getwd()
 	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
-	// compose := cmps.Compose{}
 	template := cmps.NewTemplate()
 	config := envconfig.Config{}
 	upasync := envasync.UpAsync{}
@@ -81,15 +80,17 @@ func init() {
 		"start": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
-					"shell": options.Values{
-						Defaulvalue: "bash",
+					"auto-stop": options.Values{
+						Defaulvalue: "true",
 						Description: "terminal shell that must be used",
 					},
 				},
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
-				err := docker.Start(ctx)
+
+				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
+				err := docker.Start(ctx, autoStop)
 				if err != nil {
 					panic(err)
 				}
@@ -142,23 +143,6 @@ func init() {
 			},
 			Desc: "execute an .envcontainer on the current directory without saving it locally",
 		},
-		// "remove": options.Command{
-		// 	Flags: options.Flag{
-		// 		Values: map[string]options.Values{
-		// 			"auto-approve": options.Values{
-		// 				Description: "skip confirmation",
-		// 				Defaulvalue: "false",
-		// 			},
-		// 		},
-		// 	},
-		// 	RunBeforeAll: func() {
-		// 		template.Delete(cmd)
-		// 	},
-		// 	Exec: func() {
-		// 		compose.Delete()
-		// 	},
-		// 	Desc: "delete local .envcontainer",
-		// },
 		"version": options.Command{
 			Exec: func() {
 				fmt.Println("Version: 0.5.0")
