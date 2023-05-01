@@ -7,9 +7,8 @@ import (
 	"strings"
 
 	cmps "github.com/ErickMaria/envcontainer/internal/compose"
-	"github.com/ErickMaria/envcontainer/internal/envasync"
 	"github.com/ErickMaria/envcontainer/internal/envconfig"
-	"github.com/ErickMaria/envcontainer/internal/v1/api/docker"
+	runtime "github.com/ErickMaria/envcontainer/internal/v1/api/docker"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
@@ -24,12 +23,12 @@ func init() {
 	dir, _ := os.Getwd()
 	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
 	template := cmps.NewTemplate()
-	config := envconfig.Config{}
-	upasync := envasync.UpAsync{}
+	// config := envconfig.Config{}
+	// upasync := envasync.UpAsync{}
 
 	// # DOCKER API
 	ctx := context.Background()
-	docker := docker.NewDocker()
+	docker := runtime.NewDocker()
 
 	cmd, cmds = options.NewCommand(options.CommandConfig{
 		"init": options.Command{
@@ -105,44 +104,69 @@ func init() {
 				}
 			},
 		},
-		"save": options.Command{
-			Exec: func() {
-				config.Save()
-			},
-			Desc: "save your local .envcontainer directory",
-		},
-		"list": options.Command{
-			Exec: func() {
-				config.List()
-			},
-			Desc: "list all your .envcontainer directory saved",
-		},
-		"get": options.Command{
+		"run": options.Command{
 			Flags: options.Flag{
 				Values: map[string]options.Values{
 					"name": options.Values{
-						Description: "envcontainer configuration name",
+						Description: "container name",
+					},
+					"image": options.Values{
+						Description: "envcontainer image",
+					},
+					"command": options.Values{
+						Description: "command to run inside container",
+					},
+					"pull-image-always": options.Values{
+						Defaulvalue: "false",
+						Description: "pull image always before run container (DISABLED)",
 					},
 				},
 			},
 			Exec: func() {
-				config.Get(cmd)
-			},
-			Desc: "get .envcontainer and put in current directory",
-		},
-		"exec": options.Command{
-			Flags: options.Flag{
-				Values: map[string]options.Values{
-					"name": options.Values{
-						Description: "envcontainer configuration name",
-					},
-				},
-			},
-			Exec: func() {
-				upasync.Start(cmd)
+
+				image := *cmd.Flags.Values["image"].ValueString
+				pullImageAlways := *cmd.Flags.Values["pull-image-always"].ValueBool
+				command := *cmd.Flags.Values["command"].ValueString
+
+
+				err := docker.Run(ctx, runtime.DockerRun{
+					Image: image,
+					Command: command,
+					PullImageAlways: pullImageAlways,
+
+				})
+				if err != nil {
+					panic(err)
+				}
+
 			},
 			Desc: "execute an .envcontainer on the current directory without saving it locally",
 		},
+		// "save": options.Command{
+		// 	Exec: func() {
+		// 		config.Save()
+		// 	},
+		// 	Desc: "save your local .envcontainer directory",
+		// },
+		// "list": options.Command{
+		// 	Exec: func() {
+		// 		config.List()
+		// 	},
+		// 	Desc: "list all your .envcontainer directory saved",
+		// },
+		// "get": options.Command{
+		// 	Flags: options.Flag{
+		// 		Values: map[string]options.Values{
+		// 			"name": options.Values{
+		// 				Description: "envcontainer configuration name",
+		// 			},
+		// 		},
+		// 	},
+		// 	Exec: func() {
+		// 		config.Get(cmd)
+		// 	},
+		// 	Desc: "get .envcontainer and put in current directory",
+		// },
 		"version": options.Command{
 			Exec: func() {
 				fmt.Println("Version: 0.5.0")
