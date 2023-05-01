@@ -25,18 +25,18 @@ type DockerRun struct {
 }
 
 type Docker struct {
-	cli *client.Client
+	client *client.Client
 }
 
 func NewDocker() *Docker {
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}
 
 	return &Docker{
-		cli: cli,
+		client: client,
 	}
 }
 
@@ -47,7 +47,7 @@ func (docker *Docker) Build(ctx context.Context) error {
 		return err
 	}
 
-	imageBuildResponse, err := docker.cli.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
+	imageBuildResponse, err := docker.client.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
 		Tags: []string{"envcontainer/envcontainer"},
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func (docker *Docker) Stop(ctx context.Context) error {
 	fmt.Print("Stopping container ", containerID[:10], "... ")
 
 	// Remove the container
-	docker.cli.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{
+	docker.client.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{
 		Force:         true,
 		RemoveVolumes: true,
 	})
@@ -108,6 +108,7 @@ func (docker *Docker) Stop(ctx context.Context) error {
 
 	return nil
 }
+
 func (docker *Docker) Run(ctx context.Context, run DockerRun) error {
 
 	imageExists, err := docker.checkIfImageExists(ctx, run.Image)
@@ -136,7 +137,7 @@ func (docker *Docker) Run(ctx context.Context, run DockerRun) error {
 
 func (docker *Docker) getContainerID(ctx context.Context, containerName string) (string, error) {
 
-	containers, err := docker.cli.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := docker.client.ContainerList(ctx, types.ContainerListOptions{
 		Limit: 1,
 		Filters: filters.NewArgs(filters.KeyValuePair{
 			Key:   "name",
@@ -161,7 +162,7 @@ func (docker *Docker) checkIfImageExists(ctx context.Context, image string) (boo
 		image = image + ":latest"
 	}
 
-	images, err := docker.cli.ImageList(ctx, types.ImageListOptions{
+	images, err := docker.client.ImageList(ctx, types.ImageListOptions{
 		Filters: filters.NewArgs(filters.KeyValuePair{
 			Key:   "reference",
 			Value: image,
@@ -180,7 +181,7 @@ func (docker *Docker) checkIfImageExists(ctx context.Context, image string) (boo
 
 func (docker *Docker) exec(ctx context.Context, containerID string, autoStop bool) error {
 
-	execID, err := docker.cli.ContainerExecCreate(ctx, containerID, types.ExecConfig{
+	execID, err := docker.client.ContainerExecCreate(ctx, containerID, types.ExecConfig{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -193,31 +194,36 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 	}
 
 	// Attach to the exec instance to read its output
-	hijackedResp, err := docker.cli.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{
+	execResp, err := docker.client.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{
 		Tty: true,
 	})
 	if err != nil {
 		panic(err)
 	}
-	defer hijackedResp.Close()
+	defer execResp.Close()
 
+	
 	// Start the exec instance
-	err = docker.cli.ContainerExecStart(context.Background(), execID.ID, types.ExecStartCheck{})
+	err = docker.client.ContainerExecStart(context.Background(), execID.ID, types.ExecStartCheck{})
 	if err != nil {
 		return err
 	}
 
+	// cmd := exec.Command("docker", "exec", "-it", containerID, "bash")
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// cmd.Run()
+
 	// Copy input/output between the terminal and the container
 	go func() {
-		_, err = io.Copy(os.Stdout, hijackedResp.Reader)
+		_, err = io.Copy(os.Stdout, execResp.Reader)
 		if err != nil && err != io.EOF {
 			panic(err)
 		}
 	}()
 
-
-
-	_, err = io.Copy(hijackedResp.Conn, os.Stdin)
+	_, err = io.Copy(execResp.Conn, os.Stdin)
 	if err != nil && err != io.EOF {
 		return err
 	}
@@ -231,7 +237,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 
 func (docker *Docker) pullImage(ctx context.Context, image string) error {
 
-	out, err := docker.cli.ImagePull(ctx, image, types.ImagePullOptions{})
+	out, err := docker.client.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
@@ -251,7 +257,7 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, image string)
 		image = "envcontainer/envcontainer"
 	}
 	// Create the container
-	containerResponse, err := docker.cli.ContainerCreate(ctx, &container.Config{
+	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
 		Image: image,
 		ExposedPorts: nat.PortSet{
 			"8080/tcp": struct{}{},
@@ -273,7 +279,7 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, image string)
 	}
 
 	// Start the container
-	err = docker.cli.ContainerStart(ctx, containerResponse.ID, types.ContainerStartOptions{})
+	err = docker.client.ContainerStart(ctx, containerResponse.ID, types.ContainerStartOptions{})
 	if err != nil {
 		return "", err
 	}
