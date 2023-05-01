@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -202,31 +203,30 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 	}
 	defer execResp.Close()
 
-	
 	// Start the exec instance
 	err = docker.client.ContainerExecStart(context.Background(), execID.ID, types.ExecStartCheck{})
 	if err != nil {
 		return err
 	}
 
-	// cmd := exec.Command("docker", "exec", "-it", containerID, "bash")
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// cmd.Run()
+	cmd := exec.Command("docker", "exec", "-it", containerID, "bash")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 
 	// Copy input/output between the terminal and the container
-	go func() {
-		_, err = io.Copy(os.Stdout, execResp.Reader)
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-	}()
+	// go func() {
+	// 	_, err = io.Copy(os.Stdout, execResp.Reader)
+	// 	if err != nil && err != io.EOF {
+	// 		panic(err)
+	// 	}
+	// }()
 
-	_, err = io.Copy(execResp.Conn, os.Stdin)
-	if err != nil && err != io.EOF {
-		return err
-	}
+	// _, err = io.Copy(execResp.Conn, os.Stdin)
+	// if err != nil && err != io.EOF {
+	// 	return err
+	// }
 
 	if autoStop {
 		return docker.Stop(ctx)
