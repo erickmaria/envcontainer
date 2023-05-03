@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 
+	"github.com/ErickMaria/envcontainer/internal/template"
 	runtime "github.com/ErickMaria/envcontainer/internal/v1/api/docker"
+
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
@@ -15,50 +15,21 @@ var cmds cli.CommandConfig
 
 func init() {
 
-	dir, _ := os.Getwd()
-	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
-
 	// # DOCKER API
 	ctx := context.Background()
 	docker := runtime.NewDocker()
 
+	// # Read Template File
+	_, err := template.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
 	cmd, cmds = cli.NewCommand(cli.CommandConfig{
-		"init": cli.Command{
-			Flags: cli.Flag{
-				Values: map[string]cli.Values{
-					"build": {
-						Defaulvalue: "false",
-						Description: "build a image using envcontainer configuration",
-					},
-					"override": {
-						Defaulvalue: "false",
-						Description: "override envcontainer configuration",
-					},
-				},
-			},
-			Quetion: cli.Quetion{
-				Queries: map[string]cli.Query{
-					"project": {
-						Scene: "project_name [" + projectName + "]: ",
-						Value: projectName,
-					},
-					"image": {
-						Scene: "base_image [ubuntu:latest]: ",
-						Value: "ubuntu:latest",
-					},
-					"ports": {
-						Scene: "container_ports [\"80:80\"]: ",
-					},
-				},
-			},
-			Exec: func() {
-				
-			},
-			Desc: "initialize the default template in the current directory",
-		},
 		"build": cli.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
+
 				err := docker.Build(ctx)
 				if err != nil {
 					panic(err)
