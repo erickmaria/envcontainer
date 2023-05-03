@@ -6,68 +6,57 @@ import (
 	"os"
 	"strings"
 
-	cmps "github.com/ErickMaria/envcontainer/internal/compose"
-	"github.com/ErickMaria/envcontainer/internal/envconfig"
 	runtime "github.com/ErickMaria/envcontainer/internal/v1/api/docker"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
-	options "github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
-var cmd *options.Command
-var cmds options.CommandConfig
+var cmd *cli.Command
+var cmds cli.CommandConfig
 
 func init() {
 
-	envconfig.CreateIfNotExists()
-
 	dir, _ := os.Getwd()
 	projectName := strings.Split(dir, "/")[len(strings.Split(dir, "/"))-1]
-	template := cmps.NewTemplate()
-	// config := envconfig.Config{}
-	// upasync := envasync.UpAsync{}
 
 	// # DOCKER API
 	ctx := context.Background()
 	docker := runtime.NewDocker()
 
-	cmd, cmds = options.NewCommand(options.CommandConfig{
-		"init": options.Command{
-			Flags: options.Flag{
-				Values: map[string]options.Values{
-					"build": options.Values{
+	cmd, cmds = cli.NewCommand(cli.CommandConfig{
+		"init": cli.Command{
+			Flags: cli.Flag{
+				Values: map[string]cli.Values{
+					"build": {
 						Defaulvalue: "false",
 						Description: "build a image using envcontainer configuration",
 					},
-					"override": options.Values{
+					"override": {
 						Defaulvalue: "false",
 						Description: "override envcontainer configuration",
 					},
 				},
 			},
-			Quetion: options.Quetion{
-				Queries: map[string]options.Query{
-					"1_project": options.Query{
+			Quetion: cli.Quetion{
+				Queries: map[string]cli.Query{
+					"project": {
 						Scene: "project_name [" + projectName + "]: ",
 						Value: projectName,
 					},
-					"2_image": options.Query{
+					"image": {
 						Scene: "base_image [ubuntu:latest]: ",
 						Value: "ubuntu:latest",
 					},
-					"3_ports": options.Query{
+					"ports": {
 						Scene: "container_ports [\"80:80\"]: ",
 					},
 				},
 			},
-			RunBeforeAll: func() {
-				template.CheckEnvcontainerExists(&cmd.Flags)
-			},
 			Exec: func() {
-				template.Init(cmd)
+				
 			},
 			Desc: "initialize the default template in the current directory",
 		},
-		"build": options.Command{
+		"build": cli.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
 				err := docker.Build(ctx)
@@ -76,10 +65,10 @@ func init() {
 				}
 			},
 		},
-		"start": options.Command{
-			Flags: options.Flag{
-				Values: map[string]options.Values{
-					"auto-stop": options.Values{
+		"start": cli.Command{
+			Flags: cli.Flag{
+				Values: map[string]cli.Values{
+					"auto-stop": {
 						Defaulvalue: "true",
 						Description: "terminal shell that must be used",
 					},
@@ -95,7 +84,7 @@ func init() {
 				}
 			},
 		},
-		"stop": options.Command{
+		"stop": cli.Command{
 			Desc: "stop all envcontainer configuration running in the current directory",
 			Exec: func() {
 				err := docker.Stop(ctx)
@@ -104,19 +93,19 @@ func init() {
 				}
 			},
 		},
-		"run": options.Command{
-			Flags: options.Flag{
-				Values: map[string]options.Values{
-					"name": options.Values{
+		"run": cli.Command{
+			Flags: cli.Flag{
+				Values: map[string]cli.Values{
+					"name": {
 						Description: "container name",
 					},
-					"image": options.Values{
+					"image": {
 						Description: "envcontainer image",
 					},
-					"command": options.Values{
+					"command": {
 						Description: "command to run inside container",
 					},
-					"pull-image-always": options.Values{
+					"pull-image-always": {
 						Defaulvalue: "false",
 						Description: "pull image always before run container (DISABLED)",
 					},
@@ -128,12 +117,10 @@ func init() {
 				pullImageAlways := *cmd.Flags.Values["pull-image-always"].ValueBool
 				command := *cmd.Flags.Values["command"].ValueString
 
-
 				err := docker.Run(ctx, runtime.DockerRun{
-					Image: image,
-					Command: command,
+					Image:           image,
+					Command:         command,
 					PullImageAlways: pullImageAlways,
-
 				})
 				if err != nil {
 					panic(err)
@@ -142,40 +129,15 @@ func init() {
 			},
 			Desc: "execute an .envcontainer on the current directory without saving it locally",
 		},
-		// "save": options.Command{
-		// 	Exec: func() {
-		// 		config.Save()
-		// 	},
-		// 	Desc: "save your local .envcontainer directory",
-		// },
-		// "list": options.Command{
-		// 	Exec: func() {
-		// 		config.List()
-		// 	},
-		// 	Desc: "list all your .envcontainer directory saved",
-		// },
-		// "get": options.Command{
-		// 	Flags: options.Flag{
-		// 		Values: map[string]options.Values{
-		// 			"name": options.Values{
-		// 				Description: "envcontainer configuration name",
-		// 			},
-		// 		},
-		// 	},
-		// 	Exec: func() {
-		// 		config.Get(cmd)
-		// 	},
-		// 	Desc: "get .envcontainer and put in current directory",
-		// },
-		"version": options.Command{
+		"version": cli.Command{
 			Exec: func() {
 				fmt.Println("Version: 0.5.0")
 			},
 			Desc: "show envcontainer version",
 		},
-		"help": options.Command{
+		"help": cli.Command{
 			Exec: func() {
-				options.Help(cmds)
+				cli.Help(cmds)
 			},
 			Desc: "Run " + cli.ExecutableName() + " COMMAND' for more information on a command. See: '" + cli.ExecutableName() + " help'",
 		},
