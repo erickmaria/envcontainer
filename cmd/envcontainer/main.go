@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
+	"github.com/ErickMaria/envcontainer/internal/runtime/docker/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
-	runtime "github.com/ErickMaria/envcontainer/internal/v1/api/docker"
-
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
@@ -15,22 +15,31 @@ var cmds cli.CommandConfig
 
 func init() {
 
-	// # DOCKER API
-	ctx := context.Background()
-	docker := runtime.NewDocker()
-
-	// # Read Template File
-	_, err := template.Unmarshal()
+	// # TEMPLATE FILE
+	err := template.Initialization()
 	if err != nil {
 		panic(err)
 	}
 
+	configFile, err := template.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
+	// # DOCKER API
+	ctx := context.Background()
+	container := docker.NewDocker()
+
+	// CLI
 	cmd, cmds = cli.NewCommand(cli.CommandConfig{
 		"build": cli.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
 
-				err := docker.Build(ctx)
+				err := container.Build(ctx, types.BuildOptions{
+					ImageName:  configFile.Project.Name,
+					Dockerfile: configFile.Container.Build,
+				})
 				if err != nil {
 					panic(err)
 				}
@@ -49,7 +58,7 @@ func init() {
 			Exec: func() {
 
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
-				err := docker.Start(ctx, autoStop)
+				err := container.Start(ctx, autoStop)
 				if err != nil {
 					panic(err)
 				}
@@ -58,7 +67,7 @@ func init() {
 		"stop": cli.Command{
 			Desc: "stop all envcontainer configuration running in the current directory",
 			Exec: func() {
-				err := docker.Stop(ctx)
+				err := container.Stop(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -88,8 +97,8 @@ func init() {
 				pullImageAlways := *cmd.Flags.Values["pull-image-always"].ValueBool
 				command := *cmd.Flags.Values["command"].ValueString
 
-				err := docker.Run(ctx, runtime.DockerRun{
-					Image:           image,
+				err := container.Run(ctx, types.RunOptions{
+					ImageName:       image,
 					Command:         command,
 					PullImageAlways: pullImageAlways,
 				})

@@ -3,24 +3,34 @@ package syscmd
 import (
 	"io/ioutil"
 	"os"
-
-	"github.com/ErickMaria/envcontainer/internal/pkg/handler/errors"
+	// "github.com/ErickMaria/envcontainer/internal/pkg/handler/errors"
 )
 
 func CreateFile(name string, data []byte) error {
 	return ioutil.WriteFile(name, data, 0644)
 }
 
-func AppendFile(name string, data []byte) {
+func AppendFile(name string, data []byte) error {
 	file, err := os.OpenFile(name, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	errors.Throw("", err)
-
-	if _, err = file.Write(data); err != nil {
-		errors.Throw("", err)
+	if err != nil {
+		return err
 	}
 
+	if _, err = file.Write(data); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func CreatePath(path string) error {
-	return os.MkdirAll(path, 0755)
+func CreateDir(paths []string) error {
+
+	var err error
+	for _, path := range(paths){
+		if err = os.MkdirAll(path, 0755); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

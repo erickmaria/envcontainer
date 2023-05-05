@@ -2,11 +2,22 @@ package template
 
 import (
 	"errors"
+	"log"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	paths = map[string]string{
+		"home":        ".envcontainer",
+		"cache":       ".envcontainer/cache",
+		"tmp":         ".envcontainer/tmp",
+		"dockerfiles": ".envcontainer/tmp/dockerfiles",
+	}
 )
 
 type Envcontainer struct {
@@ -19,6 +30,21 @@ type Envcontainer struct {
 		Ports []string `yaml:"ports"`
 		Build string   `yaml:"build"`
 	} `yaml:"container"`
+}
+
+func Initialization() error {
+
+	_, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = syscmd.CreateDir(toSlice(paths))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Unmarshal() (Envcontainer, error) {
@@ -35,6 +61,10 @@ func Unmarshal() (Envcontainer, error) {
 	}
 
 	envcontainer.Project.Name = strings.ToLower(envcontainer.Project.Name)
+	envcontainer.Container.Build, err = tmpDockerfile(envcontainer)
+	if err != nil {
+		return Envcontainer{}, err
+	}
 
 	err = validate(envcontainer)
 	if err != nil {
@@ -59,4 +89,31 @@ func validate(envcontainer Envcontainer) error {
 	}
 
 	return nil
+}
+
+func tmpDockerfile(envcontainer Envcontainer) (string, error) {
+
+	_, err := os.ReadFile(envcontainer.Container.Build)
+	if err != nil {
+		dockerfile := paths["dockerfiles"] + "/" + "Dockerfile." + envcontainer.Project.Name + "-" + envcontainer.Project.Version
+		err = syscmd.CreateFile(dockerfile, []byte(envcontainer.Container.Build))
+		if err != nil {
+			return "", err
+		}
+
+		return dockerfile, nil
+
+	}
+
+	return envcontainer.Container.Build, nil
+}
+
+func toSlice(maps map[string]string) []string {
+
+	values := []string{}
+	for _, v := range maps {
+		values = append(values, v)
+	}
+
+	return values
 }

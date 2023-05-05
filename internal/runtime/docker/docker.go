@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	dockerTypes "github.com/ErickMaria/envcontainer/internal/runtime/docker/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -17,13 +18,6 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/go-connections/nat"
 )
-
-type DockerRun struct {
-	Name            *string
-	Image           string
-	Command         string
-	PullImageAlways bool
-}
 
 type Docker struct {
 	client *client.Client
@@ -41,15 +35,16 @@ func NewDocker() *Docker {
 	}
 }
 
-func (docker *Docker) Build(ctx context.Context) error {
+func (docker *Docker) Build(ctx context.Context, build dockerTypes.BuildOptions) error {
 
-	buildCtx, err := archive.TarWithOptions(".envcontainer", &archive.TarOptions{})
+	buildCtx, err := archive.TarWithOptions("./", &archive.TarOptions{})
 	if err != nil {
 		return err
 	}
 
 	imageBuildResponse, err := docker.client.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
-		Tags: []string{"envcontainer/envcontainer"},
+		Tags:       []string{"envcontainer/" + build.ImageName},
+		Dockerfile: build.Dockerfile,
 	})
 	if err != nil {
 		return err
@@ -110,9 +105,9 @@ func (docker *Docker) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (docker *Docker) Run(ctx context.Context, run DockerRun) error {
+func (docker *Docker) Run(ctx context.Context, run dockerTypes.RunOptions) error {
 
-	imageExists, err := docker.checkIfImageExists(ctx, run.Image)
+	imageExists, err := docker.checkIfImageExists(ctx, run.ImageName)
 	if err != nil {
 		return err
 	}
@@ -122,7 +117,7 @@ func (docker *Docker) Run(ctx context.Context, run DockerRun) error {
 	}
 
 	if !imageExists {
-		err := docker.pullImage(ctx, run.Image)
+		err := docker.pullImage(ctx, run.ImageName)
 		if err != nil {
 			return err
 		}
