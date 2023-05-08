@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"strings"
+	"time"
 
+	"github.com/ErickMaria/envcontainer/internal/pkg/randon"
 	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
-	"github.com/ErickMaria/envcontainer/internal/runtime/docker/types"
+	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
@@ -14,6 +18,9 @@ var cmd *cli.Command
 var cmds cli.CommandConfig
 
 func init() {
+
+	// RANDON SEED
+	rand.Seed(time.Now().UnixNano())
 
 	// # TEMPLATE FILE
 	err := template.Initialization()
@@ -49,7 +56,7 @@ func init() {
 			Flags: cli.Flag{
 				Values: map[string]cli.Values{
 					"auto-stop": {
-						Defaulvalue: "true",
+						Defaulvalue: "false",
 						Description: "terminal shell that must be used",
 					},
 				},
@@ -58,7 +65,13 @@ func init() {
 			Exec: func() {
 
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
-				err := container.Start(ctx, autoStop)
+
+				err := container.Start(ctx, types.ContainerOptions{
+					AutoStop:        autoStop,
+					ContainerName:   configFile.Project.Name,
+					Ports:           configFile.Container.Ports,
+					PullImageAlways: false,
+				})
 				if err != nil {
 					panic(err)
 				}
@@ -67,7 +80,7 @@ func init() {
 		"stop": cli.Command{
 			Desc: "stop all envcontainer configuration running in the current directory",
 			Exec: func() {
-				err := container.Stop(ctx)
+				err := container.Stop(ctx, configFile.Project.Name)
 				if err != nil {
 					panic(err)
 				}
@@ -83,24 +96,21 @@ func init() {
 						Description: "envcontainer image",
 					},
 					"command": {
-						Description: "command to run inside container",
-					},
-					"pull-image-always": {
-						Defaulvalue: "false",
-						Description: "pull image always before run container (DISABLED)",
+						Description: "execute command inside container",
 					},
 				},
 			},
 			Exec: func() {
 
+				name := "envcontainer_" + randon.RandStringRunes(5)
 				image := *cmd.Flags.Values["image"].ValueString
-				pullImageAlways := *cmd.Flags.Values["pull-image-always"].ValueBool
 				command := *cmd.Flags.Values["command"].ValueString
 
-				err := container.Run(ctx, types.RunOptions{
-					ImageName:       image,
-					Command:         command,
-					PullImageAlways: pullImageAlways,
+				err := container.Run(ctx, types.ContainerOptions{
+					ContainerName: name,
+					ImageName:     image,
+					Commands:      strings.Split(strings.Trim(command, " "), " "),
+					AutoStop:      true,
 				})
 				if err != nil {
 					panic(err)

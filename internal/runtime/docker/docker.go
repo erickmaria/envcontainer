@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	dockerTypes "github.com/ErickMaria/envcontainer/internal/runtime/docker/types"
+	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -18,6 +19,8 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/go-connections/nat"
 )
+
+var shells = []string{"/bin/bash", "/bin/sh"}
 
 type Docker struct {
 	client *client.Client
@@ -35,7 +38,7 @@ func NewDocker() *Docker {
 	}
 }
 
-func (docker *Docker) Build(ctx context.Context, build dockerTypes.BuildOptions) error {
+func (docker *Docker) Build(ctx context.Context, options runtimeTypes.BuildOptions) error {
 
 	buildCtx, err := archive.TarWithOptions("./", &archive.TarOptions{})
 	if err != nil {
@@ -43,8 +46,8 @@ func (docker *Docker) Build(ctx context.Context, build dockerTypes.BuildOptions)
 	}
 
 	imageBuildResponse, err := docker.client.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
-		Tags:       []string{"envcontainer/" + build.ImageName},
-		Dockerfile: build.Dockerfile,
+		Tags:       []string{"envcontainer/" + options.ImageName},
+		Dockerfile: options.Dockerfile,
 	})
 	if err != nil {
 		return err
@@ -59,42 +62,38 @@ func (docker *Docker) Build(ctx context.Context, build dockerTypes.BuildOptions)
 	return nil
 }
 
-func (docker *Docker) Start(ctx context.Context, autoStop bool) error {
+func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
-	containerID, err := docker.getContainerID(ctx, "envcontainer")
+	container, err := docker.getContainer(ctx, options.ContainerName)
 	if err != nil {
 		return err
 	}
 
-	if containerID != "" {
-		return docker.exec(ctx, containerID, autoStop)
+	if container.ID != "" {
+		options.Commands = []string{container.Command}
+		return docker.exec(ctx, container.ID, options)
 	}
 
-	containerID, err = docker.containerCreateAndStart(ctx, "")
-	if err != nil {
-		return err
-	}
-
-	return docker.exec(ctx, containerID, autoStop)
+	return docker.tryCreateAndStartContainer(ctx, options)
 }
 
-func (docker *Docker) Stop(ctx context.Context) error {
+func (docker *Docker) Stop(ctx context.Context, containerName string) error {
 
-	containerID, err := docker.getContainerID(ctx, "envcontainer")
+	container, err := docker.getContainer(ctx, containerName)
 	if err != nil {
 		return err
 	}
 
-	if containerID == "" {
+	if container.ID == "" {
 		fmt.Println("Not container running")
 		return nil
 	}
 
 	// Stopping the container
-	fmt.Print("Stopping container ", containerID[:10], "... ")
+	fmt.Print("Stopping container ", container.ID[:10], "... ")
 
 	// Remove the container
-	docker.client.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{
+	docker.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{
 		Force:         true,
 		RemoveVolumes: true,
 	})
@@ -105,33 +104,24 @@ func (docker *Docker) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (docker *Docker) Run(ctx context.Context, run dockerTypes.RunOptions) error {
+func (docker *Docker) Run(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
-	imageExists, err := docker.checkIfImageExists(ctx, run.ImageName)
+	imageExists, err := docker.checkIfImageExists(ctx, options.ImageName)
 	if err != nil {
 		return err
 	}
 
-	if run.PullImageAlways {
-		fmt.Println("'-pull-image-always' option is disabled!")
-	}
-
 	if !imageExists {
-		err := docker.pullImage(ctx, run.ImageName)
+		err := docker.pullImage(ctx, options.ImageName)
 		if err != nil {
 			return err
 		}
 	}
 
-	containerID, err := docker.containerCreateAndStart(ctx, "")
-	if err != nil {
-		return err
-	}
-
-	return docker.exec(ctx, containerID, true)
+	return docker.tryCreateAndStartContainer(ctx, options)
 }
 
-func (docker *Docker) getContainerID(ctx context.Context, containerName string) (string, error) {
+func (docker *Docker) getContainer(ctx context.Context, containerName string) (types.Container, error) {
 
 	containers, err := docker.client.ContainerList(ctx, types.ContainerListOptions{
 		Limit: 1,
@@ -142,14 +132,14 @@ func (docker *Docker) getContainerID(ctx context.Context, containerName string) 
 	})
 
 	if len(containers) == 0 {
-		return "", nil
+		return types.Container{}, nil
 	}
 
 	if err != nil {
-		return "", err
+		return types.Container{}, err
 	}
 
-	return containers[0].ID, nil
+	return containers[0], nil
 }
 
 func (docker *Docker) checkIfImageExists(ctx context.Context, image string) (bool, error) {
@@ -175,7 +165,7 @@ func (docker *Docker) checkIfImageExists(ctx context.Context, image string) (boo
 	return true, nil
 }
 
-func (docker *Docker) exec(ctx context.Context, containerID string, autoStop bool) error {
+func (docker *Docker) exec(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
 
 	execID, err := docker.client.ContainerExecCreate(ctx, containerID, types.ExecConfig{
 		AttachStdin:  true,
@@ -183,10 +173,10 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 		AttachStderr: true,
 		Privileged:   true,
 		Tty:          true,
-		Cmd:          []string{"/bin/bash"},
+		Cmd:          options.Commands,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Attach to the exec instance to read its output
@@ -194,7 +184,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 		Tty: true,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer execResp.Close()
 
@@ -204,7 +194,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 		return err
 	}
 
-	cmd := exec.Command("docker", "exec", "-it", containerID, "bash")
+	cmd := exec.Command("docker", "exec", "-it", containerID, options.Commands[0])
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -223,8 +213,8 @@ func (docker *Docker) exec(ctx context.Context, containerID string, autoStop boo
 	// 	return err
 	// }
 
-	if autoStop {
-		return docker.Stop(ctx)
+	if options.AutoStop {
+		return docker.Stop(ctx, options.ContainerName)
 	}
 
 	return nil
@@ -246,19 +236,29 @@ func (docker *Docker) pullImage(ctx context.Context, image string) error {
 	return nil
 }
 
-func (docker *Docker) containerCreateAndStart(ctx context.Context, image string) (string, error) {
+func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
-	if image == "" {
-		image = "envcontainer/envcontainer"
+	if options.ImageName == "" {
+		options.ImageName = "envcontainer/" + options.ContainerName
+
+		imageExists, err := docker.checkIfImageExists(ctx, options.ImageName)
+		if err != nil {
+			return err
+		}
+
+		if !imageExists {
+			return errors.New("no such image try run 'build' command")
+		}
+
 	}
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
-		Image: image,
+		Image: options.ImageName,
 		ExposedPorts: nat.PortSet{
 			"8080/tcp": struct{}{},
 		},
 		Tty: true,
-		Cmd: []string{"/bin/bash"},
+		Cmd: options.Commands,
 	}, &container.HostConfig{
 		PortBindings: nat.PortMap{
 			"8080/tcp": []nat.PortBinding{
@@ -268,16 +268,34 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, image string)
 				},
 			},
 		},
-	}, &network.NetworkingConfig{}, nil, "envcontainer")
+	}, &network.NetworkingConfig{}, nil, options.ContainerName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Start the container
 	err = docker.client.ContainerStart(ctx, containerResponse.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return "", err
+		fmt.Print("Error to start container, ")
+		docker.Stop(ctx, options.ContainerName)
+		return err
 	}
 
-	return containerResponse.ID, nil
+	return docker.exec(ctx, containerResponse.ID, options)
+}
+
+func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+
+	if len(options.Commands) > 0 && options.Commands[0] != "" {
+		return docker.containerCreateAndStart(ctx, options)
+	}
+	var err error
+	for _, shell := range shells {
+		options.Commands = []string{shell}
+		if err = docker.containerCreateAndStart(ctx, options); err == nil {
+			return nil
+		}
+	}
+
+	return err
 }
