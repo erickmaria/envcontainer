@@ -127,7 +127,7 @@ func (docker *Docker) getContainer(ctx context.Context, containerName string) (t
 		Limit: 1,
 		Filters: filters.NewArgs(filters.KeyValuePair{
 			Key:   "name",
-			Value: "envcontainer",
+			Value: containerName,
 		}),
 	})
 
@@ -253,7 +253,9 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 	}
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
-		Image: options.ImageName,
+		User:       options.User,
+		WorkingDir: "/home/" + options.ContainerName,
+		Image:      options.ImageName,
 		ExposedPorts: nat.PortSet{
 			"8080/tcp": struct{}{},
 		},

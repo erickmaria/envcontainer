@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ErickMaria/envcontainer/internal/pkg/randon"
+	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
@@ -43,7 +44,15 @@ func init() {
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
 
-				err := container.Build(ctx, types.BuildOptions{
+				// FIND USER
+				if configFile.Container.User != "" {
+					_, err := syscmd.FindUser(configFile.Container.User)
+					if err != nil {
+						panic(err)
+					}
+				}
+
+				err = container.Build(ctx, types.BuildOptions{
 					ImageName:  configFile.Project.Name,
 					Dockerfile: configFile.Container.Build,
 				})
@@ -64,13 +73,22 @@ func init() {
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
 
+				// FIND USER
+				// FIND USER
+				if configFile.Container.User != "" {
+					_, err := syscmd.FindUser(configFile.Container.User)
+					if err != nil {
+						panic(err)
+					}
+				}
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
 
-				err := container.Start(ctx, types.ContainerOptions{
+				err = container.Start(ctx, types.ContainerOptions{
 					AutoStop:        autoStop,
 					ContainerName:   configFile.Project.Name,
 					Ports:           configFile.Container.Ports,
 					PullImageAlways: false,
+					User:            configFile.Container.User,
 				})
 				if err != nil {
 					panic(err)

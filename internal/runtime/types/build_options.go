@@ -1,6 +1,6 @@
 package types
 
 type BuildOptions struct {
-	ImageName string
+	ImageName  string
 	Dockerfile string
 }

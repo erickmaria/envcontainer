@@ -27,6 +27,7 @@ type Envcontainer struct {
 		Description string `yaml:"description"`
 	} `yaml:"project"`
 	Container struct {
+		User  string   `yaml:"user"`
 		Ports []string `yaml:"ports"`
 		Build string   `yaml:"build"`
 	} `yaml:"container"`
@@ -101,10 +102,18 @@ func tmpDockerfile(envcontainer Envcontainer) (string, error) {
 			return "", err
 		}
 
+		user := envcontainer.Container.User
+		if user != "" {
+			syscmd.AppendFile(dockerfile, []byte(`
+RUN apt-get update && apt-get install sudo
+RUN useradd -ms /bin/bash `+user+` && echo "`+user+` ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+USER `+user+`
+		`))
+		}
+
 		return dockerfile, nil
 
 	}
-
 	return envcontainer.Container.Build, nil
 }
 
