@@ -1,13 +1,12 @@
 package syscmd
 
 import (
-	"io/ioutil"
 	"os"
 	// "github.com/ErickMaria/envcontainer/internal/pkg/handler/errors"
 )
 
 func CreateFile(name string, data []byte) error {
-	return ioutil.WriteFile(name, data, 0644)
+	return os.WriteFile(name, data, 0644)
 }
 
 func AppendFile(name string, data []byte) error {
@@ -26,7 +25,7 @@ func AppendFile(name string, data []byte) error {
 func CreateDir(paths []string) error {
 
 	var err error
-	for _, path := range(paths){
+	for _, path := range paths {
 		if err = os.MkdirAll(path, 0755); err != nil {
 			return err
 		}

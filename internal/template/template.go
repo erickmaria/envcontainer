@@ -18,6 +18,7 @@ var (
 		"tmp":         ".envcontainer/tmp",
 		"dockerfiles": ".envcontainer/tmp/dockerfiles",
 	}
+	fileLocation string = ".envcontainer.yaml"
 )
 
 type Envcontainer struct {
@@ -50,7 +51,7 @@ func Initialization() error {
 
 func Unmarshal() (Envcontainer, error) {
 
-	data, err := os.ReadFile(".envcontainer.yaml")
+	data, err := os.ReadFile(fileLocation)
 	if err != nil {
 		return Envcontainer{}, err
 	}
@@ -73,6 +74,13 @@ func Unmarshal() (Envcontainer, error) {
 	}
 
 	return envcontainer, nil
+}
+
+func UnmarshalWithFile(location string) (Envcontainer, error) {
+
+	fileLocation = location
+
+	return Unmarshal()
 }
 
 func validate(envcontainer Envcontainer) error {

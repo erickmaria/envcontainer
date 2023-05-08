@@ -1,7 +1,6 @@
 package syscmd
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -30,7 +29,7 @@ func ListFiles(path string) []string {
 
 func ListDir(path string, subdir bool) []string {
 	if !subdir {
-		fileInfo, err := ioutil.ReadDir(path)
+		fileInfo, err := os.ReadDir(path)
 		errors.Throw("", err)
 
 		var files []string

@@ -20,19 +20,13 @@ var cmds cli.CommandConfig
 
 func init() {
 
-	// RANDON SEED
-	// rand.Seed(time.Now().UnixNano())
-
 	// # TEMPLATE FILE
 	err := template.Initialization()
 	if err != nil {
 		panic(err)
 	}
 
-	configFile, err := template.Unmarshal()
-	if err != nil {
-		panic(err)
-	}
+	configFile, errConfigFile := template.Unmarshal()
 
 	// # DOCKER API
 	ctx := context.Background()
@@ -64,6 +58,10 @@ func init() {
 		"start": cli.Command{
 			Flags: cli.Flag{
 				Values: map[string]cli.Values{
+					"get-closer": {
+						Defaulvalue: "true",
+						Description: "get the closest config file",
+					},
 					"auto-stop": {
 						Defaulvalue: "false",
 						Description: "terminal shell that must be used",
@@ -72,6 +70,25 @@ func init() {
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
+
+				file := ""
+				getCloser := *cmd.Flags.Values["get-closer"].ValueBool
+				if getCloser {
+					file, err = syscmd.FindFileCloser(".envcontainer.yaml")
+					if err != nil {
+						panic(err)
+					}
+
+					if file != "" {
+						configFile, err = template.UnmarshalWithFile(file)
+						if err != nil {
+							panic(err)
+						}
+
+					}
+				} else if errConfigFile != nil {
+					panic(err)
+				}
 
 				// FIND USER
 				if configFile.Container.User != "" {
