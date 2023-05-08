@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"log"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/ErickMaria/envcontainer/internal/pkg/randon"
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
@@ -21,7 +21,7 @@ var cmds cli.CommandConfig
 func init() {
 
 	// RANDON SEED
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
 
 	// # TEMPLATE FILE
 	err := template.Initialization()
@@ -74,13 +74,18 @@ func init() {
 			Exec: func() {
 
 				// FIND USER
-				// FIND USER
 				if configFile.Container.User != "" {
 					_, err := syscmd.FindUser(configFile.Container.User)
 					if err != nil {
 						panic(err)
 					}
 				}
+
+				path, err := os.Getwd()
+				if err != nil {
+					log.Println(err)
+				}
+
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
 
 				err = container.Start(ctx, types.ContainerOptions{
@@ -89,6 +94,7 @@ func init() {
 					Ports:           configFile.Container.Ports,
 					PullImageAlways: false,
 					User:            configFile.Container.User,
+					HostDirToBind:   path,
 				})
 				if err != nil {
 					panic(err)

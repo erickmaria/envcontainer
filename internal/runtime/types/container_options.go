@@ -9,4 +9,5 @@ type ContainerOptions struct {
 	PullImageAlways bool
 	Commands        []string
 	Ports           []string
+	HostDirToBind   string
 }

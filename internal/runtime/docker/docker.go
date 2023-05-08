@@ -270,6 +270,9 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 				},
 			},
 		},
+		Binds: []string{
+			options.HostDirToBind + ":/home/" + options.ContainerName,
+		},
 	}, &network.NetworkingConfig{}, nil, options.ContainerName)
 	if err != nil {
 		return err
