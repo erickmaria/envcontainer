@@ -103,7 +103,25 @@ func init() {
 					log.Println(err)
 				}
 
+				if configFile.AlwaysUpdate {
+					fmt.Println("Restat container...")
+
+					err := container.AlwaysUpdate(ctx, types.BuildOptions{
+						ImageName:  configFile.Project.Name,
+						Dockerfile: configFile.Container.Build,
+					})
+					if err != nil {
+						panic(err)
+					}
+				}
+
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
+
+				if configFile.AutoStop {
+					autoStop = configFile.AutoStop
+				}
+
+				fmt.Println("Stating container...")
 
 				err = container.Start(ctx, types.ContainerOptions{
 					AutoStop:        autoStop,
@@ -116,6 +134,7 @@ func init() {
 				if err != nil {
 					panic(err)
 				}
+
 			},
 		},
 		"stop": cli.Command{

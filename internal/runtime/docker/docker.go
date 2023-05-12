@@ -304,3 +304,14 @@ func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options ru
 
 	return err
 }
+
+func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.BuildOptions) error {
+
+	err := docker.Stop(ctx, options.ImageName)
+	if err != nil {
+		panic(err)
+	}
+
+	return docker.Build(ctx, options)
+
+}

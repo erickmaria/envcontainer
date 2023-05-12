@@ -32,6 +32,8 @@ type Envcontainer struct {
 		Ports []string `yaml:"ports"`
 		Build string   `yaml:"build"`
 	} `yaml:"container"`
+	AlwaysUpdate bool `yaml:"always-update"`
+	AutoStop	 bool `yaml:"auto-stop"`
 }
 
 func Initialization() error {
@@ -134,3 +136,15 @@ func toSlice(maps map[string]string) []string {
 
 	return values
 }
+
+// func CheckChanges() (bool, error) {
+
+// 	stat, err := os.Stat(fileLocation)
+// 	if err != nil {
+// 		return false, nil
+// 	}
+
+// 	fmt.Println(fileLocation, stat.Size())
+
+// 	return false, nil
+// }
