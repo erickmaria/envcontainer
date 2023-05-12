@@ -136,15 +136,3 @@ func toSlice(maps map[string]string) []string {
 
 	return values
 }
-
-// func CheckChanges() (bool, error) {
-
-// 	stat, err := os.Stat(fileLocation)
-// 	if err != nil {
-// 		return false, nil
-// 	}
-
-// 	fmt.Println(fileLocation, stat.Size())
-
-// 	return false, nil
-// }

@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
+	"github.com/ErickMaria/envcontainer/cmd/envcontainer/command"
 	"github.com/ErickMaria/envcontainer/internal/pkg/randon"
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
@@ -70,71 +69,7 @@ func init() {
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
-
-				file := ""
-				getCloser := *cmd.Flags.Values["get-closer"].ValueBool
-				if getCloser {
-					file, err = syscmd.FindFileCloser(".envcontainer.yaml")
-					if err != nil {
-						panic(err)
-					}
-
-					if file != "" {
-						configFile, err = template.UnmarshalWithFile(file)
-						if err != nil {
-							panic(err)
-						}
-
-					}
-				} else if errConfigFile != nil {
-					panic(err)
-				}
-
-				// FIND USER
-				if configFile.Container.User != "" {
-					_, err := syscmd.FindUser(configFile.Container.User)
-					if err != nil {
-						panic(err)
-					}
-				}
-
-				path, err := os.Getwd()
-				if err != nil {
-					log.Println(err)
-				}
-
-				if configFile.AlwaysUpdate {
-					fmt.Println("Restat container...")
-
-					err := container.AlwaysUpdate(ctx, types.BuildOptions{
-						ImageName:  configFile.Project.Name,
-						Dockerfile: configFile.Container.Build,
-					})
-					if err != nil {
-						panic(err)
-					}
-				}
-
-				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
-
-				if configFile.AutoStop {
-					autoStop = configFile.AutoStop
-				}
-
-				fmt.Println("Stating container...")
-
-				err = container.Start(ctx, types.ContainerOptions{
-					AutoStop:        autoStop,
-					ContainerName:   configFile.Project.Name,
-					Ports:           configFile.Container.Ports,
-					PullImageAlways: false,
-					User:            configFile.Container.User,
-					HostDirToBind:   path,
-				})
-				if err != nil {
-					panic(err)
-				}
-
+				command.StartCommand(ctx, configFile, errConfigFile, container, cmd.Flags)
 			},
 		},
 		"stop": cli.Command{
