@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/client"
@@ -34,4 +35,13 @@ func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.Bui
 
 	return docker.Build(ctx, options)
 
+}
+
+func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions) {
+
+	pathSplit := strings.Split(options.HostDirToBind, "/")
+	containerNameSuffix := pathSplit[len(pathSplit)-1]
+	if containerNameSuffix != options.ContainerName {
+		options.ContainerName = options.ContainerName + "-" + containerNameSuffix
+	}
 }

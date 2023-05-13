@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ErickMaria/envcontainer/internal/pkg/randon"
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
@@ -20,8 +19,15 @@ var cmds cli.CommandConfig
 
 func init() {
 
+	path, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+	// pathSplit := strings.Split(path, "/")
+	// containerNameSuffix := pathSplit[len(pathSplit)-1]
+
 	// # TEMPLATE FILE
-	err := template.Initialization()
+	err = template.Initialization()
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +66,7 @@ func init() {
 				Values: map[string]cli.Values{
 					"get-closer": {
 						Defaulvalue: "true",
-						Description: "get the closest config file",
+						Description: "will stop current container running and get the closest config file to run a new container",
 					},
 					"auto-stop": {
 						Defaulvalue: "false",
@@ -70,6 +76,7 @@ func init() {
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
+
 				getCloser := *cmd.Flags.Values["get-closer"].ValueBool
 				if getCloser {
 					file, err := syscmd.FindFileCloser(".envcontainer.yaml")
@@ -84,6 +91,12 @@ func init() {
 						}
 
 					}
+
+					err = container.Stop(ctx, configFile.Project.Name)
+					if err != nil {
+						panic(err)
+					}
+
 				} else if errConfigFile != nil {
 					panic(errConfigFile)
 				}
@@ -94,11 +107,6 @@ func init() {
 					if err != nil {
 						panic(err)
 					}
-				}
-
-				path, err := os.Getwd()
-				if err != nil {
-					log.Println(err)
 				}
 
 				if configFile.AlwaysUpdate {
@@ -159,7 +167,7 @@ func init() {
 			},
 			Exec: func() {
 
-				name := "envcontainer_" + randon.RandStringRunes(5)
+				name := "envcontainer"
 				image := *cmd.Flags.Values["image"].ValueString
 				command := *cmd.Flags.Values["command"].ValueString
 
@@ -168,6 +176,7 @@ func init() {
 					ImageName:     image,
 					Commands:      strings.Split(strings.Trim(command, " "), " "),
 					AutoStop:      true,
+					HostDirToBind: path,
 				})
 				if err != nil {
 					panic(err)

@@ -15,6 +15,21 @@ import (
 
 func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
+	if options.ImageName == "" {
+		options.ImageName = "envcontainer/" + options.ContainerName
+
+		imageExists, err := docker.checkIfImageExists(ctx, options.ImageName)
+		if err != nil {
+			return err
+		}
+		if !imageExists {
+			return errors.New("no such image try run 'build' command")
+		}
+
+	}
+
+	docker.addContainerSuffix(&options)
+
 	container, err := docker.getContainer(ctx, options.ContainerName)
 	if err != nil {
 		return err
@@ -30,19 +45,6 @@ func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerO
 
 func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
-	if options.ImageName == "" {
-		options.ImageName = "envcontainer/" + options.ContainerName
-
-		imageExists, err := docker.checkIfImageExists(ctx, options.ImageName)
-		if err != nil {
-			return err
-		}
-
-		if !imageExists {
-			return errors.New("no such image try run 'build' command")
-		}
-
-	}
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
 		User:       options.User,
