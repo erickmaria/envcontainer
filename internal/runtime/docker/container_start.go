@@ -54,23 +54,19 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 
 			splitPort := strings.Split(strings.Trim(port, " "), ":")
 
+			bindPort := nat.PortBinding{}
+			bindPort.HostIP = "0.0.0.0"
+
 			if len(splitPort) == 2 {
 				exposedPorts[nat.Port(splitPort[0])] = struct{}{}
-				portBindings[nat.Port(splitPort[0])] = []nat.PortBinding{
-					{
-						HostIP:   "0.0.0.0",
-						HostPort: splitPort[1],
-					},
-				}
-			} else {
-				exposedPorts[nat.Port(port)] = struct{}{}
-				portBindings[nat.Port(port)] = []nat.PortBinding{
-					{
-						HostIP:   "0.0.0.0",
-						HostPort: port,
-					},
-				}
+				bindPort.HostPort = splitPort[1]
+				portBindings[nat.Port(splitPort[0])] = []nat.PortBinding{bindPort}
+				continue
 			}
+
+			exposedPorts[nat.Port(port)] = struct{}{}
+			bindPort.HostPort = port
+			portBindings[nat.Port(port)] = []nat.PortBinding{bindPort}
 
 		}
 	}
