@@ -186,7 +186,7 @@ func init() {
 		},
 		"version": cli.Command{
 			Exec: func() {
-				fmt.Println("Version: 0.5.0")
+				fmt.Println("Version: 1.0.0-beta")
 			},
 			Desc: "show envcontainer version",
 		},
