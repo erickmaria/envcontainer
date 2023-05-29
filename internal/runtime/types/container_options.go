@@ -10,4 +10,5 @@ type ContainerOptions struct {
 	Commands        []string
 	Ports           []string
 	HostDirToBind   string
+	Mounts          []string
 }

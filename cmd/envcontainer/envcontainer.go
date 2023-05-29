@@ -23,7 +23,7 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
-	
+
 	// # TEMPLATE FILE
 	err = template.Initialization()
 	if err != nil {
@@ -134,6 +134,7 @@ func init() {
 					PullImageAlways: false,
 					User:            configFile.Container.User,
 					HostDirToBind:   path,
+					Mounts:          configFile.Mounts,
 				})
 				if err != nil {
 					panic(err)

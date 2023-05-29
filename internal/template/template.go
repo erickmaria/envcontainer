@@ -2,7 +2,6 @@ package template
 
 import (
 	"errors"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -13,10 +12,10 @@ import (
 
 var (
 	paths = map[string]string{
-		"home":        ".envcontainer",
-		"cache":       ".envcontainer/cache",
-		"tmp":         ".envcontainer/tmp",
-		"dockerfiles": ".envcontainer/tmp/dockerfiles",
+		"home":        "/tmp/.envcontainer",
+		"cache":       "/tmp/.envcontainer/cache",
+		"tmp":         "/tmp/.envcontainer/tmp",
+		"dockerfiles": "/tmp/.envcontainer/tmp/dockerfiles",
 	}
 	fileLocation string = ".envcontainer.yaml"
 )
@@ -32,18 +31,14 @@ type Envcontainer struct {
 		Ports []string `yaml:"ports"`
 		Build string   `yaml:"build"`
 	} `yaml:"container"`
-	AlwaysUpdate bool `yaml:"always-update"`
-	AutoStop	 bool `yaml:"auto-stop"`
+	AlwaysUpdate bool     `yaml:"always-update"`
+	AutoStop     bool     `yaml:"auto-stop"`
+	Mounts       []string `yaml:"mounts"`
 }
 
 func Initialization() error {
 
-	_, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = syscmd.CreateDir(toSlice(paths))
+	err := syscmd.CreateDir(toSlice(paths))
 	if err != nil {
 		return err
 	}
@@ -135,4 +130,8 @@ func toSlice(maps map[string]string) []string {
 	}
 
 	return values
+}
+
+func GetCacheDir() string {
+	return paths["cache"]
 }
