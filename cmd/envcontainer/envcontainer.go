@@ -23,9 +23,7 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
-	// pathSplit := strings.Split(path, "/")
-	// containerNameSuffix := pathSplit[len(pathSplit)-1]
-
+	
 	// # TEMPLATE FILE
 	err = template.Initialization()
 	if err != nil {

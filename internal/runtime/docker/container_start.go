@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
@@ -45,25 +46,45 @@ func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerO
 
 func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
+	exposedPorts := nat.PortSet{}
+	portBindings := nat.PortMap{}
+
+	if len(options.Ports) != 0 {
+		for _, port := range options.Ports {
+
+			splitPort := strings.Split(strings.Trim(port, " "), ":")
+
+			if len(splitPort) == 2 {
+				exposedPorts[nat.Port(splitPort[0])] = struct{}{}
+				portBindings[nat.Port(splitPort[0])] = []nat.PortBinding{
+					{
+						HostIP:   "0.0.0.0",
+						HostPort: splitPort[1],
+					},
+				}
+			} else {
+				exposedPorts[nat.Port(port)] = struct{}{}
+				portBindings[nat.Port(port)] = []nat.PortBinding{
+					{
+						HostIP:   "0.0.0.0",
+						HostPort: port,
+					},
+				}
+			}
+
+		}
+	}
+
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
-		User:       options.User,
-		WorkingDir: "/home/" + options.ContainerName,
-		Image:      options.ImageName,
-		ExposedPorts: nat.PortSet{
-			"8080/tcp": struct{}{},
-		},
-		Tty: true,
-		Cmd: options.Commands,
+		User:         options.User,
+		WorkingDir:   "/home/" + options.ContainerName,
+		Image:        options.ImageName,
+		ExposedPorts: exposedPorts,
+		Tty:          true,
+		Cmd:          options.Commands,
 	}, &container.HostConfig{
-		PortBindings: nat.PortMap{
-			"8080/tcp": []nat.PortBinding{
-				{
-					HostIP:   "0.0.0.0",
-					HostPort: "8080",
-				},
-			},
-		},
+		PortBindings: portBindings,
 		Binds: []string{
 			options.HostDirToBind + ":/home/" + options.ContainerName,
 		},

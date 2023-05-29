@@ -34,5 +34,4 @@ func (docker *Docker) Stop(ctx context.Context, containerName string) error {
 		time.Sleep(1 * time.Second)
 	}
 
-	return nil
 }
