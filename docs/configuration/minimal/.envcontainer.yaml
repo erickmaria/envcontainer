@@ -1,0 +1,8 @@
+project:
+  name: Envcontainer
+  version: 0.0.1
+  description: Envcontainer, an extremely simple way to create a development environment with docker containers.
+container:
+  # exemple: containerPort:HostPort
+  build: |
+    FROM ubuntu:latest
