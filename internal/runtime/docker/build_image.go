@@ -14,14 +14,14 @@ import (
 
 func (docker *Docker) Build(ctx context.Context, options runtimeTypes.BuildOptions) error {
 
-	buildCtx, err := archive.TarWithOptions("./", &archive.TarOptions{})
+	buildCtx, err := archive.TarWithOptions(options.BuildContext, &archive.TarOptions{})
 	if err != nil {
 		return err
 	}
 
 	imageBuildResponse, err := docker.client.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
 		Tags:       []string{"envcontainer/" + options.ImageName},
-		Dockerfile: options.Dockerfile,
+		Dockerfile: "Dockerfile",
 	})
 	if err != nil {
 		return err

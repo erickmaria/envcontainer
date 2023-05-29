@@ -13,9 +13,7 @@ import (
 var (
 	paths = map[string]string{
 		"home":        "/tmp/.envcontainer",
-		"cache":       "/tmp/.envcontainer/cache",
-		"tmp":         "/tmp/.envcontainer/tmp",
-		"dockerfiles": "/tmp/.envcontainer/tmp/dockerfiles",
+		"dockerfiles": "/tmp/.envcontainer/dockerfiles",
 	}
 	fileLocation string = ".envcontainer.yaml"
 )
@@ -101,7 +99,13 @@ func tmpDockerfile(envcontainer Envcontainer) (string, error) {
 
 	_, err := os.ReadFile(envcontainer.Container.Build)
 	if err != nil {
-		dockerfile := paths["dockerfiles"] + "/" + "Dockerfile." + envcontainer.Project.Name + "-" + envcontainer.Project.Version
+		dockerfilePath := envcontainer.GetTmpDockerfileDir()
+
+		err = syscmd.CreateDir([]string{dockerfilePath})
+		if err != nil {
+			return "", err
+		}
+		dockerfile := dockerfilePath + "/Dockerfile"
 		err = syscmd.CreateFile(dockerfile, []byte(envcontainer.Container.Build))
 		if err != nil {
 			return "", err
@@ -132,6 +136,6 @@ func toSlice(maps map[string]string) []string {
 	return values
 }
 
-func GetCacheDir() string {
-	return paths["cache"]
+func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
+	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
 }

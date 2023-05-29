@@ -51,8 +51,9 @@ func init() {
 				}
 
 				err = container.Build(ctx, types.BuildOptions{
-					ImageName:  configFile.Project.Name,
-					Dockerfile: configFile.Container.Build,
+					ImageName:    configFile.Project.Name,
+					Dockerfile:   configFile.Container.Build,
+					BuildContext: configFile.GetTmpDockerfileDir(),
 				})
 				if err != nil {
 					panic(err)
