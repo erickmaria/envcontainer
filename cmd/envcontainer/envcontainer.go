@@ -187,11 +187,11 @@ func init() {
 		},
 		"version": cli.Command{
 			Exec: func() {
-				fmt.Println("Version: 1.0.0-beta")
+				fmt.Println("Version: 1.0.0-beta2")
 			},
 			Desc: "show envcontainer version",
 		},
-		"help": cli.Command{
+		"help": cli.Command{''
 			Exec: func() {
 				cli.Help(cmds)
 			},
