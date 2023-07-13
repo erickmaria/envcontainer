@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 
@@ -35,9 +36,15 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 
 func (docker *Docker) execInteractive(ctx context.Context, containerID string) error {
 
+	height, width, err := getTerminalSize()
+	if err != nil {
+		fmt.Println("Error getting terminal size: ", err)
+	}
+
 	steam, err := docker.client.ContainerExecAttach(ctx, containerID, types.ExecStartCheck{
-		Detach: false,
-		Tty:    true,
+		ConsoleSize: &[2]uint{height, width},
+		Detach:      false,
+		Tty:         true,
 	})
 	if err != nil {
 		return err
@@ -63,4 +70,14 @@ func (docker *Docker) execInteractive(ctx context.Context, containerID string) e
 	}
 
 	return nil
+}
+
+func getTerminalSize() (uint, uint, error) {
+	ws, err := term.GetWinsize(os.Stderr.Fd())
+	if err != nil {
+		if ws == nil {
+			return 0, 0, err
+		}
+	}
+	return uint(ws.Height), uint(ws.Width), nil
 }
