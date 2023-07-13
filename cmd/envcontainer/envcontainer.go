@@ -191,7 +191,7 @@ func init() {
 			},
 			Desc: "show envcontainer version",
 		},
-		"help": cli.Command{''
+		"help": cli.Command{
 			Exec: func() {
 				cli.Help(cmds)
 			},
