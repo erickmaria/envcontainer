@@ -25,7 +25,10 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 		return err
 	}
 
-	docker.execInteractive(ctx, resp.ID)
+	if err := docker.execInteractive(ctx, resp.ID); err != nil {
+		docker.Stop(ctx, options.ContainerName)
+		return err
+	}
 
 	if options.AutoStop {
 		return docker.Stop(ctx, options.ContainerName)
@@ -46,9 +49,11 @@ func (docker *Docker) execInteractive(ctx context.Context, containerID string) e
 		Detach:      false,
 		Tty:         true,
 	})
+
 	if err != nil {
 		return err
 	}
+
 	defer steam.Close()
 
 	state, err := term.MakeRaw(os.Stdin.Fd())
