@@ -17,7 +17,6 @@ func (docker *Docker) Stop(ctx context.Context, containerName string) error {
 		}
 
 		if container.ID == "" {
-			fmt.Println("Not container running")
 			return nil
 		}
 
