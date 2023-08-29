@@ -74,7 +74,7 @@ func Help(descs map[string]Command) {
 	sort.Strings(sortDescs)
 	for _, v := range sortDescs {
 		fmt.Printf("%s:     \t\t%v\n", v, descs[v].Desc)
-		for flagKey, flagValue := range  descs[v].Flags.Values {
+		for flagKey, flagValue := range descs[v].Flags.Values {
 			fmt.Printf("    --%s:     \t\t%v\n", flagKey, flagValue.Description)
 		}
 	}

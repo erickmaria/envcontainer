@@ -1,0 +1,18 @@
+project:
+  name: Envcontainer
+  version: 0.0.1
+  description: Envcontainer, an extremely simple way to create a development environment with docker containers.
+container:
+  # your host user
+  user: user
+  # exemple: containerPort:HostPort
+  ports:
+    - 8081
+  build: |
+    FROM ubuntu:latest
+always-update: false
+auto-stop: false
+# save bind directory on container to host or host to container; be careful!
+# echo $(pwd)/.envcontainer/cache
+mounts:
+  - host:container
