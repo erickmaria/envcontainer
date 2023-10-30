@@ -3,7 +3,7 @@ module github.com/ErickMaria/envcontainer
 go 1.20
 
 require (
-	github.com/docker/docker v24.0.5+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587
 	gopkg.in/yaml.v2 v2.4.0
