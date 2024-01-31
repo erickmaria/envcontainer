@@ -9,7 +9,6 @@ import (
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
@@ -94,7 +93,9 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 	err = docker.client.ContainerStart(ctx, containerResponse.ID, types.ContainerStartOptions{})
 	if err != nil {
 		fmt.Print("Error to start container, ")
-		docker.Stop(ctx, options.ContainerName)
+		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: options.ContainerName,
+		})
 		return err
 	}
 
@@ -115,25 +116,4 @@ func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options ru
 	}
 
 	return err
-}
-
-func (docker *Docker) getContainer(ctx context.Context, containerName string) (types.Container, error) {
-
-	containers, err := docker.client.ContainerList(ctx, types.ContainerListOptions{
-		Limit: 1,
-		Filters: filters.NewArgs(filters.KeyValuePair{
-			Key:   "name",
-			Value: containerName,
-		}),
-	})
-
-	if len(containers) == 0 {
-		return types.Container{}, nil
-	}
-
-	if err != nil {
-		return types.Container{}, err
-	}
-
-	return containers[0], nil
 }

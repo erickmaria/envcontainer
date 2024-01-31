@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
@@ -26,12 +27,18 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 	}
 
 	if err := docker.execInteractive(ctx, resp.ID); err != nil {
-		docker.Stop(ctx, options.ContainerName)
+		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0] ,
+			HostDirToBind: options.HostDirToBind,
+		})
 		return err
 	}
 
 	if options.AutoStop {
-		return docker.Stop(ctx, options.ContainerName)
+		return docker.Stop(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0] ,
+			HostDirToBind: options.HostDirToBind,
+		})
 	}
 
 	return nil

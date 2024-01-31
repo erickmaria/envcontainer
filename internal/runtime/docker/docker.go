@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -28,7 +30,9 @@ func NewDocker() *Docker {
 
 func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.BuildOptions) error {
 
-	err := docker.Stop(ctx, options.ImageName)
+	err := docker.Stop(ctx, runtimeTypes.ContainerOptions{
+		ContainerName: options.ImageName,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -39,9 +43,30 @@ func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.Bui
 
 func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions) {
 
-	pathSplit := strings.Split(options.HostDirToBind, "/")
-	containerNameSuffix := pathSplit[len(pathSplit)-1]
-	if containerNameSuffix != options.ContainerName {
+	if !options.NoContainerSuffix {
+		pathSplit := strings.Split(options.HostDirToBind, "/")
+		containerNameSuffix := pathSplit[len(pathSplit)-1]
 		options.ContainerName = options.ContainerName + "-" + containerNameSuffix
 	}
+}
+
+func (docker *Docker) getContainer(ctx context.Context, containerName string) (types.Container, error) {
+
+	containers, err := docker.client.ContainerList(ctx, types.ContainerListOptions{
+		Limit: 1,
+		Filters: filters.NewArgs(filters.KeyValuePair{
+			Key:   "name",
+			Value: containerName,
+		}),
+	})
+
+	if len(containers) == 0 {
+		return types.Container{}, nil
+	}
+
+	if err != nil {
+		return types.Container{}, err
+	}
+
+	return containers[0], nil
 }
