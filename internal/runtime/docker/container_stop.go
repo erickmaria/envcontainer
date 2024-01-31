@@ -3,20 +3,24 @@ package docker
 import (
 	"context"
 	"fmt"
-	"time"
 
+	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
 )
 
-func (docker *Docker) Stop(ctx context.Context, containerName string) error {
+func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+
+	docker.addContainerSuffix(&options)
 
 	for {
-		container, err := docker.getContainer(ctx, containerName)
+		container, err := docker.getContainer(ctx, options.ContainerName)
+
 		if err != nil {
 			return err
 		}
 
 		if container.ID == "" {
+			fmt.Println("no containers found with name '" + options.ContainerName + "'")
 			return nil
 		}
 
@@ -30,7 +34,8 @@ func (docker *Docker) Stop(ctx context.Context, containerName string) error {
 		})
 
 		fmt.Println("Success!")
-		time.Sleep(1 * time.Second)
+
+		return nil
 	}
 
 }

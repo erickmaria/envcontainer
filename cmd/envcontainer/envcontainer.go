@@ -17,6 +17,32 @@ import (
 var cmd *cli.Command
 var cmds cli.CommandConfig
 
+func getConfig(getCloser bool) template.Envcontainer {
+
+	configFile, errConfigFile := template.Unmarshal()
+
+	if getCloser {
+		file, err := syscmd.FindFileCloser(".envcontainer.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		if file != "" {
+			configFile, err = template.UnmarshalWithFile(file)
+			if err != nil {
+				panic(err)
+			}
+
+		}
+
+	} else if errConfigFile != nil {
+		panic(errConfigFile)
+	}
+
+	return configFile
+
+}
+
 func init() {
 
 	path, err := os.Getwd()
@@ -30,8 +56,6 @@ func init() {
 		panic(err)
 	}
 
-	configFile, errConfigFile := template.Unmarshal()
-
 	// # DOCKER API
 	ctx := context.Background()
 	container := docker.NewDocker()
@@ -41,6 +65,8 @@ func init() {
 		"build": cli.Command{
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
+
+				configFile := getConfig(false)
 
 				// FIND USER
 				if configFile.Container.User != "" {
@@ -76,29 +102,7 @@ func init() {
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
 
-				getCloser := *cmd.Flags.Values["get-closer"].ValueBool
-				if getCloser {
-					file, err := syscmd.FindFileCloser(".envcontainer.yaml")
-					if err != nil {
-						panic(err)
-					}
-
-					if file != "" {
-						configFile, err = template.UnmarshalWithFile(file)
-						if err != nil {
-							panic(err)
-						}
-
-					}
-
-					err = container.Stop(ctx, configFile.Project.Name)
-					if err != nil {
-						panic(err)
-					}
-
-				} else if errConfigFile != nil {
-					panic(errConfigFile)
-				}
+				configFile := getConfig(*cmd.Flags.Values["get-closer"].ValueBool)
 
 				// FIND USER
 				if configFile.Container.User != "" {
@@ -144,8 +148,34 @@ func init() {
 		},
 		"stop": cli.Command{
 			Desc: "stop all envcontainer configuration running in the current directory",
+			Flags: cli.Flag{
+				Values: map[string]cli.Values{
+					"name": {
+						Description: "container name",
+					},
+					"get-closer": {
+						Defaulvalue: "true",
+						Description: "will stop current container running and get the closest config file to run a new container",
+					},
+				},
+			},
 			Exec: func() {
-				err := container.Stop(ctx, configFile.Project.Name)
+
+				configFile := getConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+
+				var containerName = configFile.Project.Name
+				var noContainerNameSuffix = false
+
+				if *cmd.Flags.Values["name"].ValueString != "" {
+					containerName = *cmd.Flags.Values["name"].ValueString
+					noContainerNameSuffix = true
+				}
+
+				err := container.Stop(ctx, types.ContainerOptions{
+					ContainerName:     containerName,
+					HostDirToBind:     path,
+					NoContainerSuffix: noContainerNameSuffix,
+				})
 				if err != nil {
 					panic(err)
 				}
@@ -187,7 +217,7 @@ func init() {
 		},
 		"version": cli.Command{
 			Exec: func() {
-				fmt.Println("Version: 1.0.0-beta3")
+				fmt.Println("Version: 1.0.0-beta4")
 			},
 			Desc: "show envcontainer version",
 		},
