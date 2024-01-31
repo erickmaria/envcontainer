@@ -29,8 +29,9 @@ type Envcontainer struct {
 		Ports []string `yaml:"ports"`
 		Build string   `yaml:"build"`
 	} `yaml:"container"`
-	AlwaysUpdate bool     `yaml:"always-update"`
-	AutoStop     bool     `yaml:"auto-stop"`
+	AlwaysUpdate bool `yaml:"always-update"`
+	AutoStop     bool `yaml:"auto-stop"`
+	mountDir     string
 	Mounts       []string `yaml:"mounts"`
 }
 
@@ -126,6 +127,24 @@ USER `+user+`
 	return envcontainer.Container.Build, nil
 }
 
+func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
+	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
+}
+
+func (envcontainer *Envcontainer) BuildMount() {
+	for k, v := range envcontainer.Mounts {
+		if strings.Contains(v, ":") {
+			continue
+		}
+
+		mountFolder := sliceDeleteEmpty(strings.Split(envcontainer.Mounts[k], "/"))
+
+		envcontainer.Mounts[k] = envcontainer.mountDir + mountFolder[len(mountFolder)-1] + ":" + envcontainer.Mounts[k]
+
+	}
+
+}
+
 func toSlice(maps map[string]string) []string {
 
 	values := []string{}
@@ -136,6 +155,20 @@ func toSlice(maps map[string]string) []string {
 	return values
 }
 
-func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
-	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
+func sliceDeleteEmpty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }
+
+func (envcontainer *Envcontainer) SetMountDir(mountDir string) {
+	envcontainer.mountDir = mountDir
+}
+
+// func (envcontainer *Envcontainer) GetMountDir() string {
+// 	return envcontainer.mountDir
+// }

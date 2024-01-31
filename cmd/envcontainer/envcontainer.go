@@ -27,6 +27,12 @@ func getConfig(getCloser bool) template.Envcontainer {
 			panic(err)
 		}
 
+		pwd, _ := os.Getwd()
+		for i := 0; i < strings.Count(file, "../"); i++ {
+			pwd = strings.Join(strings.Split(pwd, "/")[:len(strings.Split(pwd, "/"))-1], "/")
+
+		}
+
 		if file != "" {
 			configFile, err = template.UnmarshalWithFile(file)
 			if err != nil {
@@ -35,10 +41,12 @@ func getConfig(getCloser bool) template.Envcontainer {
 
 		}
 
+		configFile.SetMountDir(pwd + "/.envcontainer/")
+		configFile.BuildMount()
+
 	} else if errConfigFile != nil {
 		panic(errConfigFile)
 	}
-
 	return configFile
 
 }
