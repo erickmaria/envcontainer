@@ -22,13 +22,12 @@ Linux based systems:
 Using Envcontainer is a three-step process:
 
 1. Define your app's container environment with a `.envcontainer.yaml` file.
-   > [!TIP]
-   > Obs: config file exemples
+    > [!TIP]
+    > configuration files exemples [here](docs/configuration/READMED.md).
 2. Run `envcontainer build`
 3. Lastly, run `envcontainer start` and Envcontainer will start and enter your container.
 
 A Envcontainer file looks like this:
-
 
 ```yaml
 project:
@@ -42,7 +41,7 @@ container:
 auto-stop: false
 
 ```
-For more information about envcontainer, run `envcontainer start` 
+For more information about envcontainer, run `envcontainer help` 
  
  ```bash
 Usage: envcontainer COMMAND --FLAGS

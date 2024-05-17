@@ -1,6 +1,6 @@
-# Examples:
+# Exemples
 
-### Configuration file:
+### Envcontainer configuration files:
 
 
 - [full example](configuration/full/.envcontainer.yaml)
