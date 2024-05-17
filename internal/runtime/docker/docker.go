@@ -46,7 +46,7 @@ func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions)
 	if !options.NoContainerSuffix {
 		pathSplit := strings.Split(options.HostDirToBind, "/")
 		containerNameSuffix := pathSplit[len(pathSplit)-1]
-		options.ContainerName = options.ContainerName + "-" + containerNameSuffix
+		options.ContainerName = strings.ToLower(options.ContainerName + "-" + containerNameSuffix)
 	}
 }
 
