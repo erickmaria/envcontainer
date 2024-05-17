@@ -7,64 +7,58 @@ Check latest version on relase page [here](https://github.com/ErickMaria/envcont
 ## Requirements
 
 Docker version 18.02.0+.
-
 Docker compose 1.27.0+.
 
-Linux based systems
+Linux based systems:
 - Ubuntu (64-bit)
 - Debian (64-bit)
 - CentOS (64-bit)
+> [!NOTE] 
 > Obs: **Windows system have not been yet tested.**
 
 
-## Usage
-### Initialize
-Inside your project run command
+## Quick Start
 
-```bash
-envcontainer init
+Using Envcontainer is a three-step process:
+
+1. Define your app's container environment with a `.envcontainer.yaml` file.
+   > [!TIP]
+   > Obs: config file exemples
+2. Run `envcontainer build`
+3. Lastly, run `envcontainer start` and Envcontainer will start and enter your container.
+
+A Envcontainer file looks like this:
+
+
+```yaml
+project:
+  name: <YOUR_PROJECT_NAME> # Envcontainer
+  version: <YOUR_PROJECT_VERSION> # 1.0.0
+  description: <YOUR_PROJECT_DESCRIPTION> # Create a development environment for Envcontainer Application.
+container:
+  # write Dockerfile to build container
+  build: |
+    FROM ubuntu:latest
+auto-stop: false
+
 ```
-
-This command will create a folder named by ".envcontainer", with a some files like Dockerfile, docker-compose and .variables.
-
-How your can edit Dockerfile into .envcontainer folder to prepare your workspace inside container
-> Obs: make sure the Dockerfile base image has an entrypoint otherwise add it at the end of the file
-
-### Build
-
-```bash
-envcontainer build
-```
-
-By default init command already execute build command to build Dockerfile and up container but if you edited Dockerfile make sure run this command to the envcontainer get the latest modifications
-
-### Start
-
-```bash
-envcontainer up
-```
-
-Using this commmand envcontainer will enter inside container shell.
-
-### Stop
-
-```bash
-envcontainer down
-```
-
-
-the stop command will kill container stopping your envcontainer environment
-
-### Delete
-
-```bash
-envcontainer delete
-```
-
-will delete container running, image and envcontainer files.
-
-#### for more information about commands run
+For more information about envcontainer, run `envcontainer start` 
  
  ```bash
-envcontainer help
+Usage: envcontainer COMMAND --FLAGS
+
+Commands
+build:                  build a image using envcontainer configuration in the current directory
+help:                   Run envcontainer COMMAND' for more information on a command. See: 'envcontainer help'
+run:                    execute an .envcontainer on the current directory without saving it locally
+    --name:                     container name
+    --image:                    envcontainer image
+    --command:                  execute command inside container
+start:                  run the envcontainer configuration to start the container and link it to the current directory
+    --get-closer:               will stop current container running and get the closest config file to run a new container
+    --auto-stop:                terminal shell that must be used
+stop:                   stop all envcontainer configuration running in the current directory
+    --name:                     container name
+    --get-closer:               will stop current container running and get the closest config file to run a new container
+version:                show envcontainer version
 ```
