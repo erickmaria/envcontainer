@@ -36,6 +36,19 @@ func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerO
 	}
 
 	if container.ID != "" {
+
+		inspect, err := docker.client.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			return err
+		}
+		
+		if (inspect.State.Status == "paused" || inspect.State.Status == "exited"){
+			docker.tryStart(ctx, runtimeTypes.ContainerStartInfo{
+				Name: inspect.Name,
+				ID: inspect.ID,
+			}, types.ContainerStartOptions{})
+		}
+
 		options.Commands = []string{container.Command}
 		return docker.exec(ctx, container.ID, options)
 	}
@@ -90,16 +103,24 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 	}
 
 	// Start the container
-	err = docker.client.ContainerStart(ctx, containerResponse.ID, types.ContainerStartOptions{})
+	docker.tryStart(ctx, runtimeTypes.ContainerStartInfo{
+		Name: options.ContainerName,
+		ID: containerResponse.ID,
+	}, types.ContainerStartOptions{})
+
+	return docker.exec(ctx, containerResponse.ID, options)
+}
+
+func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerStartInfo, options types.ContainerStartOptions) error {
+	err := docker.client.ContainerStart(ctx, info.ID, options)
 	if err != nil {
 		fmt.Print("Error to start container, ")
 		docker.Stop(ctx, runtimeTypes.ContainerOptions{
-			ContainerName: options.ContainerName,
+			ContainerName: info.Name,
 		})
 		return err
 	}
-
-	return docker.exec(ctx, containerResponse.ID, options)
+	return nil
 }
 
 func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions) error {
