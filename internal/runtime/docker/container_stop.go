@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 )
 
 func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOptions) error {
@@ -13,22 +13,22 @@ func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOp
 	docker.addContainerSuffix(&options)
 
 	for {
-		container, err := docker.getContainer(ctx, options.ContainerName)
+		getContainer, err := docker.getContainer(ctx, options.ContainerName)
 
 		if err != nil {
 			return err
 		}
 
-		if container.ID == "" {
+		if getContainer.ID == "" {
 			fmt.Println("no containers found with name '" + options.ContainerName + "'")
 			return nil
 		}
 
 		// Stopping the container
-		fmt.Print("Stopping container ", container.ID[:10], "... ")
+		fmt.Print("Stopping container ", getContainer.ID[:10], "... ")
 
 		// Remove the container
-		docker.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{
+		docker.client.ContainerRemove(ctx, getContainer.ID, container.RemoveOptions{
 			Force:         true,
 			RemoveVolumes: true,
 		})

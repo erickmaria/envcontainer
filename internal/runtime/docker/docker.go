@@ -6,6 +6,7 @@ import (
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
@@ -52,7 +53,7 @@ func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions)
 
 func (docker *Docker) getContainer(ctx context.Context, containerName string) (types.Container, error) {
 
-	containers, err := docker.client.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := docker.client.ContainerList(ctx, container.ListOptions{
 		Limit: 1,
 		Filters: filters.NewArgs(filters.KeyValuePair{
 			Key:   "name",

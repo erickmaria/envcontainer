@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
@@ -30,27 +29,27 @@ func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerO
 
 	docker.addContainerSuffix(&options)
 
-	container, err := docker.getContainer(ctx, options.ContainerName)
+	getContainer, err := docker.getContainer(ctx, options.ContainerName)
 	if err != nil {
 		return err
 	}
 
-	if container.ID != "" {
+	if getContainer.ID != "" {
 
-		inspect, err := docker.client.ContainerInspect(ctx, container.ID)
+		inspect, err := docker.client.ContainerInspect(ctx, getContainer.ID)
 		if err != nil {
 			return err
 		}
-		
-		if (inspect.State.Status == "paused" || inspect.State.Status == "exited"){
+
+		if inspect.State.Status == "paused" || inspect.State.Status == "exited" {
 			docker.tryStart(ctx, runtimeTypes.ContainerStartInfo{
 				Name: inspect.Name,
-				ID: inspect.ID,
-			}, types.ContainerStartOptions{})
+				ID:   inspect.ID,
+			}, container.StartOptions{})
 		}
 
-		options.Commands = []string{container.Command}
-		return docker.exec(ctx, container.ID, options)
+		options.Commands = []string{getContainer.Command}
+		return docker.exec(ctx, getContainer.ID, options)
 	}
 
 	return docker.tryCreateAndStartContainer(ctx, options)
@@ -105,13 +104,13 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 	// Start the container
 	docker.tryStart(ctx, runtimeTypes.ContainerStartInfo{
 		Name: options.ContainerName,
-		ID: containerResponse.ID,
-	}, types.ContainerStartOptions{})
+		ID:   containerResponse.ID,
+	}, container.StartOptions{})
 
 	return docker.exec(ctx, containerResponse.ID, options)
 }
 
-func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerStartInfo, options types.ContainerStartOptions) error {
+func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerStartInfo, options container.StartOptions) error {
 	err := docker.client.ContainerStart(ctx, info.ID, options)
 	if err != nil {
 		fmt.Print("Error to start container, ")
