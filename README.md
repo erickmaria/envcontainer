@@ -6,8 +6,7 @@ Check latest version on relase page [here](https://github.com/ErickMaria/envcont
 
 ## Requirements
 
-Docker version 18.02.0+.
-Docker compose 1.27.0+.
+- Docker version 18.02.0+.
 
 Linux based systems:
 - Ubuntu (64-bit)
