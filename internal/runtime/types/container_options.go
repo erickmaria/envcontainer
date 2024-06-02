@@ -10,6 +10,7 @@ type ContainerOptions struct {
 	Commands          []string
 	Ports             []string
 	HostDirToBind     string
+	DefaultMountDir   string
 	Mounts            []string
 	NoContainerSuffix bool
 }

@@ -82,8 +82,12 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		}
 	}
 
-	mounts := options.Mounts
-	mounts = append(mounts, options.HostDirToBind+":/home/"+options.ContainerName)
+	// mounts := options.Mounts
+	// mounts = append(mounts)
+
+	mounts := docker.buildMount(options.DefaultMountDir, options.Mounts)
+
+	bindProject := options.HostDirToBind + ":/home/" + options.ContainerName
 
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
@@ -95,7 +99,8 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		Cmd:          options.Commands,
 	}, &container.HostConfig{
 		PortBindings: portBindings,
-		Binds:        mounts,
+		Binds:        []string{bindProject},
+		Mounts:       mounts,
 	}, &network.NetworkingConfig{}, nil, options.ContainerName)
 	if err != nil {
 		return err

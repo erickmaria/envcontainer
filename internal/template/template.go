@@ -18,6 +18,20 @@ var (
 	fileLocation string = ".envcontainer.yaml"
 )
 
+type Type string
+
+// Type constants
+const (
+	TypeBind   Type = "bind"
+	TypeVolume Type = "volume"
+)
+
+type EnvcontainerMounts struct {
+	Type   Type   `yaml:"type"`
+	Source string `yaml:"source"`
+	Target string `yaml:"target"`
+}
+
 type Envcontainer struct {
 	Project struct {
 		Name        string `yaml:"name"`
@@ -131,20 +145,6 @@ func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
 	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
 }
 
-func (envcontainer *Envcontainer) BuildMount() {
-	for k, v := range envcontainer.Mounts {
-		if strings.Contains(v, ":") {
-			continue
-		}
-
-		mountFolder := sliceDeleteEmpty(strings.Split(envcontainer.Mounts[k], "/"))
-
-		envcontainer.Mounts[k] = envcontainer.mountDir + mountFolder[len(mountFolder)-1] + ":" + envcontainer.Mounts[k]
-
-	}
-
-}
-
 func toSlice(maps map[string]string) []string {
 
 	values := []string{}
@@ -166,9 +166,11 @@ func sliceDeleteEmpty(s []string) []string {
 }
 
 func (envcontainer *Envcontainer) SetMountDir(mountDir string) {
+
 	envcontainer.mountDir = mountDir
+
 }
 
-// func (envcontainer *Envcontainer) GetMountDir() string {
-// 	return envcontainer.mountDir
-// }
+func (envcontainer *Envcontainer) GetMountDir() string {
+	return envcontainer.mountDir
+}

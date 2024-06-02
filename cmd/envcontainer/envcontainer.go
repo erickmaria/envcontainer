@@ -16,6 +16,7 @@ import (
 
 var cmd *cli.Command
 var cmds cli.CommandConfig
+var defaultMountDir string
 
 func getConfig(getCloser bool) template.Envcontainer {
 
@@ -41,8 +42,7 @@ func getConfig(getCloser bool) template.Envcontainer {
 
 		}
 
-		configFile.SetMountDir(pwd + "/.envcontainer/")
-		configFile.BuildMount()
+		defaultMountDir = pwd + "/.envcontainer/"
 
 	} else if errConfigFile != nil {
 		panic(errConfigFile)
@@ -148,6 +148,7 @@ func init() {
 					User:            configFile.Container.User,
 					HostDirToBind:   path,
 					Mounts:          configFile.Mounts,
+					DefaultMountDir: defaultMountDir,
 				})
 				if err != nil {
 					panic(err)
