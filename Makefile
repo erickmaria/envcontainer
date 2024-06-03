@@ -24,4 +24,4 @@ bump-version/patch:  ## Increment the patch version (x.y.Z)
 
 .PHONY: release
 release:  ## Push the new project version
-        git push --follow-tags origin $(DEFAULT_BRANCH)
+    git push --follow-tags origin $(DEFAULT_BRANCH)
