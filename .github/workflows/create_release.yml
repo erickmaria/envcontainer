@@ -1,0 +1,75 @@
+name: Create Release and Update Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version name'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  dependencies:
+    name: Resolve Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Download dependencies
+        run: go mod download
+
+  release:
+    name: Create Tag and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pip install bump2version==1.0.1
+  
+      - uses: actions/checkout@v4
+
+      - name: Git config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version
+        id: get_module_version
+        run: |
+          make bump-version/${{ github.event.inputs.version }}
+          echo "version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+          make release
+  
+      - name: Build and Compact
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o envcontainer cmd/envcontainer/envcontainer.go
+          zip envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip envcontainer 
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-envcontainer-v${{ steps.get_module_version.outputs.version }}-${{ steps.get_module_version.outputs.version }}
+          retention-days: 5
+          path: |
+            ./release/envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
+
+      - name: Generate Release Note
+        run: |
+          line_numbers=$(grep -n -m2 '^## v' CHANGELOG.md | cut -d: -f1 | paste -sd ',')
+          sed -n "${line_numbers}p" CHANGELOG.md | head -n -1 > release_note.md
+          cat release_note.md
+  
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_module_version.outputs.version }}
+          body_path: release_note.md
+          files: |
+            ./release/envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
+

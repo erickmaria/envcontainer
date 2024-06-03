@@ -7,6 +7,20 @@ on:
     branches: [ "main" ]
 
 jobs:
+  changelog:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check CHANGELOG.md file for changes
+        run: |
+          if [ -z "$(git diff --name-only remotes/origin/${{ github.base_ref }} -- CHANGELOG.md)" ]; then
+            echo "The CHANGELOG.md file needs to be modified in this PR before doing Merge."
+            exit 1
+          fi  
   build:
     runs-on: ubuntu-latest
     steps:
