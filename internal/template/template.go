@@ -72,7 +72,7 @@ func Unmarshal() (Envcontainer, error) {
 		return Envcontainer{}, err
 	}
 
-	envcontainer.Project.Name = strings.ToLower(envcontainer.Project.Name)
+	envcontainer.Project.Name = strings.ReplaceAll(strings.ToLower(envcontainer.Project.Name), " ", "-")
 	envcontainer.Container.Build, err = tmpDockerfile(envcontainer)
 	if err != nil {
 		return Envcontainer{}, err
