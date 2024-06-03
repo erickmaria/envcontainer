@@ -22,7 +22,7 @@ Using Envcontainer is a three-step process:
 
 1. Define your app's container environment with a `.envcontainer.yaml` file.
     > [!TIP]
-    > configuration files exemples [here](docs/configuration/READMED.md).
+    > configuration files exemples [here](docs/configuration-files/READMED.md).
 2. Run `envcontainer build`
 3. Lastly, run `envcontainer start` and Envcontainer will start and enter your container.
 
@@ -60,3 +60,6 @@ stop:                   stop all envcontainer configuration running in the curre
     --get-closer:               will stop current container running and get the closest config file to run a new container
 version:                show envcontainer version
 ```
+
+> [!NOTE] 
+> `devcontainer` commands do not support all features to manage your containers, in this case you can use `docker` cli commands if you need.
