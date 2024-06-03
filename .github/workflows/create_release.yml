@@ -14,27 +14,18 @@ on:
           - patch
 
 jobs:
-  dependencies:
-    name: Resolve Dependencies
+  release:
+    name: Create Tag and Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
-      - name: Download dependencies
-        run: go mod download
-
-  release:
-    name: Create Tag and Release
-    runs-on: ubuntu-latest
-    steps:
       - name: Install dependencies
         run: |
           pip install bump2version==1.0.1
-  
-      - uses: actions/checkout@v4
-
+      
       - name: Git config
         run: |
           git config user.name "github-actions[bot]"
@@ -46,7 +37,10 @@ jobs:
           make bump-version/${{ github.event.inputs.version }}
           echo "version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           make release
-  
+
+      - name: Download dependencies
+        run: go mod download
+
       - name: Build and Compact
         run: |
           GOOS=linux GOARCH=amd64 go build -o envcontainer cmd/envcontainer/envcontainer.go
