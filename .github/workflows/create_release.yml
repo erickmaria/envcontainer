@@ -34,14 +34,18 @@ jobs:
           pip install bump2version==1.0.1
   
       - uses: actions/checkout@v4
-      - run: |
+
+      - name: Git config
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version
+        id: get_module_version
+        run: |
           make bump-version/${{ github.event.inputs.version }}
           echo "version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           make release
-        name: Update version
-        id: get_module_version
   
       - name: Build and Compact
         run: |
