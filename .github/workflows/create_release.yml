@@ -51,7 +51,7 @@ jobs:
           name: release-artifacts-envcontainer-v${{ steps.get_module_version.outputs.version }}-${{ steps.get_module_version.outputs.version }}
           retention-days: 5
           path: |
-            ./release/envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
+            ./envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
 
       - name: Generate Release Note
         run: |
@@ -65,5 +65,5 @@ jobs:
           tag_name: ${{ steps.get_module_version.outputs.version }}
           body_path: release_note.md
           files: |
-            ./release/envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
+            ./envcontainer_${{ steps.get_module_version.outputs.version }}_linux_amd64.zip
 

@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+- Error in github workflow for uploading artifacts when creating release
+
 ## v1.1.0 - 2024-06-03
 
 ### Added
