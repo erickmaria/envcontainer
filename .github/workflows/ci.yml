@@ -17,8 +17,7 @@ jobs:
 
       - name: Check CHANGELOG.md file for changes
         run: |
-          git branch -a
-          if [ -z "$(git diff --name-only remotes/origin/${{ github.base_ref }} -- README.md)" ]; then
+          if [ -z "$(git diff --name-only remotes/origin/${{ github.base_ref }} -- CHANGELOG.md)" ]; then
             echo "The CHANGELOG.md file needs to be modified in this PR before doing Merge."
             exit 1
           fi  
