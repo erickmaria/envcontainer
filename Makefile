@@ -1,3 +1,5 @@
+DEFAULT_BRANCH := main
+
 define _build
 	GOOS=$1 GOARCH=amd64 go build -o envcontainer cmd/envcontainer/envcontainer.go
 endef
@@ -19,3 +21,7 @@ bump-version/minor:  ## Increment the minor version (x.Y.z)
 .PHONY:  bump-version/patch
 bump-version/patch:  ## Increment the patch version (x.y.Z)
 	bump2version patch
+
+.PHONY: release
+release:  ## Push the new project version
+        git push --follow-tags origin $(DEFAULT_BRANCH)
