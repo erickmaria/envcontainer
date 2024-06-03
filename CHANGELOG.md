@@ -1,5 +1,7 @@
 ## Unreleased
 
+## v1.1.0 - 2024-06-03
+
 ### Added
 
 - [#21](https://github.com/erickmaria/envcontainer/pull/21): Create automation to create new releases and tags
