@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+
+- chore: remove volume when stop container
+
 ### Fixed
 
 - Error in github workflow for uploading artifacts when creating release
