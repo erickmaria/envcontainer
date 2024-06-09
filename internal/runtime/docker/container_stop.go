@@ -6,6 +6,7 @@ import (
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 )
 
 func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOptions) error {
@@ -33,6 +34,11 @@ func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOp
 			RemoveVolumes: true,
 		})
 
+		for _, v := range getContainer.Mounts {
+			if v.Type == mount.TypeVolume {
+				docker.client.VolumeRemove(ctx, v.Name, true)
+			}
+		}
 		fmt.Println("Success!")
 
 		return nil
