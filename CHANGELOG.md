@@ -3,6 +3,8 @@
 ### Added
 
 - chore: remove volume when stop container
+- chore: remove option user on .envcontainer.yaml
+- chore: add new flag to start with vscode
 
 ### Fixed
 
