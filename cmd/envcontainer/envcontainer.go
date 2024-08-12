@@ -47,6 +47,10 @@ func getConfig(getCloser bool) template.Envcontainer {
 	} else if errConfigFile != nil {
 		panic(errConfigFile)
 	}
+
+	if configFile.Container.Shell == "" {
+		configFile.Container.Shell = "bash"
+	}
 	return configFile
 
 }
@@ -76,14 +80,6 @@ func init() {
 
 				configFile := getConfig(false)
 
-				// FIND USER
-				if configFile.Container.User != "" {
-					_, err := syscmd.FindUser(configFile.Container.User)
-					if err != nil {
-						panic(err)
-					}
-				}
-
 				err = container.Build(ctx, types.BuildOptions{
 					ImageName:    configFile.Project.Name,
 					Dockerfile:   configFile.Container.Build,
@@ -105,20 +101,16 @@ func init() {
 						Defaulvalue: "false",
 						Description: "terminal shell that must be used",
 					},
+					"code": {
+						Defaulvalue: "false",
+						Description: "open with vscode",
+					},
 				},
 			},
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
 
 				configFile := getConfig(*cmd.Flags.Values["get-closer"].ValueBool)
-
-				// FIND USER
-				if configFile.Container.User != "" {
-					_, err := syscmd.FindUser(configFile.Container.User)
-					if err != nil {
-						panic(err)
-					}
-				}
 
 				if configFile.AlwaysUpdate {
 					fmt.Println("Restat container...")
@@ -133,6 +125,7 @@ func init() {
 				}
 
 				autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
+				code := *cmd.Flags.Values["code"].ValueBool
 
 				if configFile.AutoStop {
 					autoStop = configFile.AutoStop
@@ -145,11 +138,11 @@ func init() {
 					ContainerName:   configFile.Project.Name,
 					Ports:           configFile.Container.Ports,
 					PullImageAlways: false,
-					User:            configFile.Container.User,
+					Shell:           configFile.Container.Shell,
 					HostDirToBind:   path,
 					Mounts:          configFile.Mounts,
 					DefaultMountDir: defaultMountDir,
-				})
+				}, code)
 				if err != nil {
 					panic(err)
 				}

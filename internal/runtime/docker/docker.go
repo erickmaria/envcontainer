@@ -3,6 +3,8 @@ package docker
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -143,7 +145,6 @@ func (docker *Docker) buildMount(defaultMountDir string, mountStr []string) []mo
 				})
 				continue
 			}
-			
 
 			mountPatternNotMatchError(mountStr[k])
 
@@ -163,4 +164,35 @@ func removeDuplicateSlashes(s string) string {
 
 func mountPatternNotMatchError(mount string) {
 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
+}
+
+func (docker *Docker) code(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
+
+	inspect, err := docker.client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return err
+	}
+
+	if inspect.State.Status == "exited" {
+		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0],
+			HostDirToBind: options.HostDirToBind,
+		})
+	}
+
+	fmt.Println("conecting to container "+ containerID +" from the host", inspect.NetworkSettings.IPAddress)
+
+	// execute a new bash shell
+	cmd := exec.Command("code", "--folder-uri", fmt.Sprint("vscode-remote://ssh-remote+envcontainer@"+inspect.NetworkSettings.IPAddress+":22", "/home/"+options.ContainerName))
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
+	return nil
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
 
 	if options.ImageName == "" {
 		options.ImageName = "envcontainer/" + options.ContainerName
@@ -49,13 +49,18 @@ func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerO
 		}
 
 		options.Commands = []string{getContainer.Command}
+
+		if code {
+			return docker.code(ctx, getContainer.ID, options)
+		}
+
 		return docker.exec(ctx, getContainer.ID, options)
 	}
 
-	return docker.tryCreateAndStartContainer(ctx, options)
+	return docker.tryCreateAndStartContainer(ctx, options, code)
 }
 
-func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
 
 	exposedPorts := nat.PortSet{}
 	portBindings := nat.PortMap{}
@@ -91,16 +96,17 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 
 	// Create the container
 	containerResponse, err := docker.client.ContainerCreate(ctx, &container.Config{
-		User:         options.User,
 		WorkingDir:   "/home/" + options.ContainerName,
 		Image:        options.ImageName,
 		ExposedPorts: exposedPorts,
 		Tty:          true,
-		Cmd:          options.Commands,
+		// Cmd:          options.Commands,
+		Hostname:     options.ContainerName,
 	}, &container.HostConfig{
 		PortBindings: portBindings,
 		Binds:        []string{bindProject},
 		Mounts:       mounts,
+		NetworkMode:  network.NetworkBridge,
 	}, &network.NetworkingConfig{}, nil, options.ContainerName)
 	if err != nil {
 		return err
@@ -111,6 +117,10 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		Name: options.ContainerName,
 		ID:   containerResponse.ID,
 	}, container.StartOptions{})
+
+	if code {
+		return docker.code(ctx, containerResponse.ID, options)
+	}
 
 	return docker.exec(ctx, containerResponse.ID, options)
 }
@@ -124,18 +134,19 @@ func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerS
 		})
 		return err
 	}
+
 	return nil
 }
 
-func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
 
 	if len(options.Commands) > 0 && options.Commands[0] != "" {
-		return docker.containerCreateAndStart(ctx, options)
+		return docker.containerCreateAndStart(ctx, options, code)
 	}
 	var err error
 	for _, shell := range shells {
 		options.Commands = []string{shell}
-		if err = docker.containerCreateAndStart(ctx, options); err == nil {
+		if err = docker.containerCreateAndStart(ctx, options, code); err == nil {
 			return nil
 		}
 	}
