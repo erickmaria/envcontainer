@@ -49,12 +49,13 @@ Commands
 build:                  build a image using envcontainer configuration in the current directory
 help:                   Run envcontainer COMMAND' for more information on a command. See: 'envcontainer help'
 run:                    execute an .envcontainer on the current directory without saving it locally
+    --command:                  execute command inside container
     --name:                     container name
     --image:                    envcontainer image
-    --command:                  execute command inside container
 start:                  run the envcontainer configuration to start the container and link it to the current directory
-    --get-closer:               will stop current container running and get the closest config file to run a new container
     --auto-stop:                terminal shell that must be used
+    --code:                     open with vscode
+    --get-closer:               will stop current container running and get the closest config file to run a new container
 stop:                   stop all envcontainer configuration running in the current directory
     --name:                     container name
     --get-closer:               will stop current container running and get the closest config file to run a new container
