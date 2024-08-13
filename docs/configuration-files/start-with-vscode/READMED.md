@@ -37,3 +37,11 @@ auto-stop: false
 ```
 
 Run `envcontainer start --code`
+
+> [!TIPS]
+> add this on your ~/.ssh/config to bypass host verification for known hosts 
+>```
+> Host 172.17.0.*
+>     StrictHostKeyChecking no
+>     UserKnownHostsFile=/dev/null
+> ```
