@@ -97,7 +97,7 @@ func validate(envcontainer Envcontainer) error {
 
 	if len(envcontainer.Container.Ports) > 0 {
 
-		regex := regexp.MustCompile(`^(\\d+)(:?)(\\d+)$`)
+		regex := regexp.MustCompile(`^(\d+)(:?)(\d+)$`)
 
 		for _, v := range envcontainer.Container.Ports {
 
