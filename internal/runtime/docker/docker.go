@@ -180,7 +180,7 @@ func (docker *Docker) code(ctx context.Context, containerID string, options runt
 		})
 	}
 
-	var host = inspect.NetworkSettings.IPAddress + "22"
+	var host = inspect.NetworkSettings.IPAddress + ":22"
 
 	for i, p := range inspect.NetworkSettings.Ports {
 		if strings.Contains("22", i.Port()) {
