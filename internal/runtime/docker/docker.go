@@ -180,15 +180,23 @@ func (docker *Docker) code(ctx context.Context, containerID string, options runt
 		})
 	}
 
-	fmt.Println("conecting to container "+ containerID +" from the host", inspect.NetworkSettings.IPAddress)
+	var host = inspect.NetworkSettings.IPAddress + "22"
 
-	// execute a new bash shell
-	cmd := exec.Command("code", "--folder-uri", fmt.Sprint("vscode-remote://ssh-remote+envcontainer@"+inspect.NetworkSettings.IPAddress+":22", "/home/"+options.ContainerName))
+	for i, p := range inspect.NetworkSettings.Ports {
+		if strings.Contains("22", i.Port()) {
+			host = "localhost:" + p[0].HostPort
+		}
+	}
+
+	connection := fmt.Sprint("vscode-remote://ssh-remote+"+inspect.Config.User+"@"+host, "/home/"+options.ContainerName)
+
+	fmt.Println("conecting to container " + containerID + " from the remote " + connection)
+
+	cmd := exec.Command("code", "--folder-uri", connection)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 
 	if err := cmd.Run(); err != nil {
 		panic(err)
