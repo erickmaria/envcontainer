@@ -36,7 +36,7 @@ func NewDocker() *Docker {
 
 func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.BuildOptions) error {
 
-	err := docker.Stop(ctx, runtimeTypes.ContainerOptions{
+	err := docker.Down(ctx, runtimeTypes.ContainerOptions{
 		ContainerName: options.ImageName,
 	})
 	if err != nil {
@@ -44,7 +44,6 @@ func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.Bui
 	}
 
 	return docker.Build(ctx, options)
-
 }
 
 func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions) {
@@ -174,7 +173,7 @@ func (docker *Docker) code(ctx context.Context, containerID string, options runt
 	}
 
 	if inspect.State.Status == "exited" {
-		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+		docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
 		})

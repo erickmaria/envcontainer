@@ -90,12 +90,12 @@ func init() {
 				}
 			},
 		},
-		"start": cli.Command{
+		"up": cli.Command{
 			Flags: cli.Flag{
 				Values: map[string]cli.Values{
 					"get-closer": {
 						Defaulvalue: "true",
-						Description: "will stop current container running and get the closest config file to run a new container",
+						Description: "will get the closest configuration file to run a new container",
 					},
 					"auto-stop": {
 						Defaulvalue: "false",
@@ -133,7 +133,7 @@ func init() {
 
 				fmt.Println("Stating container...")
 
-				err = container.Start(ctx, types.ContainerOptions{
+				err = container.Up(ctx, types.ContainerOptions{
 					AutoStop:        autoStop,
 					ContainerName:   configFile.Project.Name,
 					Ports:           configFile.Container.Ports,
@@ -148,8 +148,8 @@ func init() {
 				}
 			},
 		},
-		"stop": cli.Command{
-			Desc: "stop all envcontainer configuration running in the current directory",
+		"down": cli.Command{
+			Desc: "remove all envcontainer configuration running in the current directory",
 			Flags: cli.Flag{
 				Values: map[string]cli.Values{
 					"name": {
@@ -157,7 +157,7 @@ func init() {
 					},
 					"get-closer": {
 						Defaulvalue: "true",
-						Description: "will stop current container running and get the closest config file to run a new container",
+						Description: "will get the closest configuration file and remove all envcontainer",
 					},
 				},
 			},
@@ -173,7 +173,7 @@ func init() {
 					noContainerNameSuffix = true
 				}
 
-				err := container.Stop(ctx, types.ContainerOptions{
+				err := container.Down(ctx, types.ContainerOptions{
 					ContainerName:     containerName,
 					HostDirToBind:     path,
 					NoContainerSuffix: noContainerNameSuffix,

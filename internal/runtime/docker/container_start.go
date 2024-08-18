@@ -12,7 +12,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (docker *Docker) Start(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
+func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
 
 	if options.ImageName == "" {
 		options.ImageName = "envcontainer/" + options.ContainerName
@@ -87,9 +87,6 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		}
 	}
 
-	// mounts := options.Mounts
-	// mounts = append(mounts)
-
 	mounts := docker.buildMount(options.DefaultMountDir, options.Mounts)
 
 	bindProject := options.HostDirToBind + ":/home/" + options.ContainerName
@@ -100,7 +97,6 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		Image:        options.ImageName,
 		ExposedPorts: exposedPorts,
 		Tty:          true,
-		// Cmd:          options.Commands,
 		Hostname:     options.ContainerName,
 	}, &container.HostConfig{
 		PortBindings: portBindings,
@@ -129,7 +125,7 @@ func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerS
 	err := docker.client.ContainerStart(ctx, info.ID, options)
 	if err != nil {
 		fmt.Print("Error to start container, ")
-		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+		docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: info.Name,
 		})
 		return err

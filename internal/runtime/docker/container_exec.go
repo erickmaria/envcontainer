@@ -29,7 +29,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 	}
 
 	if err := docker.execInteractive(ctx, resp.ID); err != nil {
-		docker.Stop(ctx, runtimeTypes.ContainerOptions{
+		docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
 		})
@@ -37,7 +37,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 	}
 
 	if options.AutoStop {
-		return docker.Stop(ctx, runtimeTypes.ContainerOptions{
+		return docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
 		})
