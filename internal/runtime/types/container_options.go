@@ -1,7 +1,7 @@
 package types
 
 type ContainerOptions struct {
-	User              string
+	Shell             string
 	HomeDir           string
 	AutoStop          bool
 	ContainerName     string

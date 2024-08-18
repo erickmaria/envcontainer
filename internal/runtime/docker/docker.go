@@ -3,6 +3,8 @@ package docker
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -34,7 +36,7 @@ func NewDocker() *Docker {
 
 func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.BuildOptions) error {
 
-	err := docker.Stop(ctx, runtimeTypes.ContainerOptions{
+	err := docker.Down(ctx, runtimeTypes.ContainerOptions{
 		ContainerName: options.ImageName,
 	})
 	if err != nil {
@@ -42,7 +44,6 @@ func (docker *Docker) AlwaysUpdate(ctx context.Context, options runtimeTypes.Bui
 	}
 
 	return docker.Build(ctx, options)
-
 }
 
 func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions) {
@@ -143,7 +144,6 @@ func (docker *Docker) buildMount(defaultMountDir string, mountStr []string) []mo
 				})
 				continue
 			}
-			
 
 			mountPatternNotMatchError(mountStr[k])
 
@@ -163,4 +163,43 @@ func removeDuplicateSlashes(s string) string {
 
 func mountPatternNotMatchError(mount string) {
 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
+}
+
+func (docker *Docker) code(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
+
+	inspect, err := docker.client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return err
+	}
+
+	if inspect.State.Status == "exited" {
+		docker.Down(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0],
+			HostDirToBind: options.HostDirToBind,
+		})
+	}
+
+	var host = inspect.NetworkSettings.IPAddress + ":22"
+
+	for i, p := range inspect.NetworkSettings.Ports {
+		if strings.Contains("22", i.Port()) {
+			host = "localhost:" + p[0].HostPort
+		}
+	}
+
+	connection := fmt.Sprint("vscode-remote://ssh-remote+"+inspect.Config.User+"@"+host, "/home/"+options.ContainerName)
+
+	fmt.Println("conecting to container " + containerID + " from the remote " + connection)
+
+	cmd := exec.Command("code", "--folder-uri", connection)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
+	return nil
 }

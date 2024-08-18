@@ -7,7 +7,7 @@ endef
 .PHONY: compact/linux
 compact/linux:
 	$(call _build,linux)
-	@zip envcontainer_v1.0.0_linux_amd64.zip envcontainer 
+	@zip envcontainer_linux_amd64.zip envcontainer 
 
 
 .PHONY: bump-version/major

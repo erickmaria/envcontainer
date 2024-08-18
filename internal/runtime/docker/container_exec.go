@@ -20,23 +20,25 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 		AttachStderr: true,
 		Privileged:   true,
 		Tty:          true,
-		Cmd:          options.Commands,
+		Cmd: []string{
+			options.Shell,
+		},
 	})
 	if err != nil {
 		return err
 	}
 
 	if err := docker.execInteractive(ctx, resp.ID); err != nil {
-		docker.Stop(ctx, runtimeTypes.ContainerOptions{
-			ContainerName: strings.Split(options.ContainerName, "-")[0] ,
+		docker.Down(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
 		})
 		return err
 	}
 
 	if options.AutoStop {
-		return docker.Stop(ctx, runtimeTypes.ContainerOptions{
-			ContainerName: strings.Split(options.ContainerName, "-")[0] ,
+		return docker.Down(ctx, runtimeTypes.ContainerOptions{
+			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
 		})
 	}

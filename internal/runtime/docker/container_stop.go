@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 )
 
-func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) Down(ctx context.Context, options runtimeTypes.ContainerOptions) error {
 
 	docker.addContainerSuffix(&options)
 
@@ -40,8 +40,6 @@ func (docker *Docker) Stop(ctx context.Context, options runtimeTypes.ContainerOp
 			}
 		}
 		fmt.Println("Success!")
-
-		return nil
 	}
 
 }

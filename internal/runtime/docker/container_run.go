@@ -24,5 +24,5 @@ func (docker *Docker) Run(ctx context.Context, options runtimeTypes.ContainerOpt
 	docker.addContainerSuffix(&options)
 	options.ContainerName = options.ContainerName + "-" + randon.RandStringRunes(6)
 
-	return docker.tryCreateAndStartContainer(ctx, options)
+	return docker.tryCreateAndStartContainer(ctx, options, false)
 }
