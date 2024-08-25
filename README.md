@@ -47,18 +47,19 @@ Usage: envcontainer COMMAND --FLAGS
 
 Commands
 build:                  build a image using envcontainer configuration in the current directory
+down:                   remove all envcontainer configuration running in the current directory
+    --name:                     container name
+    --get-closer:               will get the closest configuration file and remove all envcontainer
 help:                   Run envcontainer COMMAND' for more information on a command. See: 'envcontainer help'
+ls:     
 run:                    execute an .envcontainer on the current directory without saving it locally
     --command:                  execute command inside container
     --name:                     container name
     --image:                    envcontainer image
-start:                  run the envcontainer configuration to start the container and link it to the current directory
-    --auto-stop:                terminal shell that must be used
+up:                     run the envcontainer configuration to start the container and link it to the current directory
     --code:                     open with vscode
-    --get-closer:               will stop current container running and get the closest config file to run a new container
-stop:                   stop all envcontainer configuration running in the current directory
-    --name:                     container name
-    --get-closer:               will stop current container running and get the closest config file to run a new container
+    --get-closer:               will get the closest configuration file to run a new container
+    --auto-stop:                terminal shell that must be used
 version:                show envcontainer version
 ```
 
