@@ -9,6 +9,9 @@ compact/linux:
 	$(call _build,linux)
 	@zip envcontainer_linux_amd64.zip envcontainer 
 
+.PHONY: run
+run:
+	go run cmd/envcontainer/*.go
 
 .PHONY: bump-version/major
 bump-version/major:  ## Increment the major version (X.y.z)
