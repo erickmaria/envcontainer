@@ -1,5 +1,7 @@
 ## Unreleased
 
+## v2.0.0 - 2024-08-25
+
 ### Added
 
 - chore: remove volume when stop container
