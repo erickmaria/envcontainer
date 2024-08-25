@@ -2,7 +2,10 @@ package template
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -134,6 +137,85 @@ func tmpDockerfile(envcontainer Envcontainer) (string, error) {
 
 func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
 	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
+}
+
+func List() (map[string]Envcontainer, error) {
+
+	usr, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+
+	root := usr.HomeDir
+	pattern := ".envcontainer.yaml"
+
+	var matches []string
+
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && info.Name() == pattern {
+			matches = append(matches, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var envcontainers = map[string]Envcontainer{}
+	for _, match := range matches {
+		envcontainer, err := UnmarshalWithFile(match)
+		if err != nil {
+			fmt.Println(match)
+			return nil, err
+		}
+		envcontainers[match] = envcontainer
+
+	}
+
+	return envcontainers, nil
+}
+
+func GetConfig(getCloser bool) (Envcontainer, string, error) {
+
+	configFile, errConfigFile := Unmarshal()
+	var defaultMountDir string
+
+	if getCloser {
+		file, err := syscmd.FindFileCloser(".envcontainer.yaml")
+		if err != nil {
+			return Envcontainer{}, "", err
+		}
+
+		pwd, _ := os.Getwd()
+		for i := 0; i < strings.Count(file, "../"); i++ {
+			pwd = strings.Join(strings.Split(pwd, "/")[:len(strings.Split(pwd, "/"))-1], "/")
+
+		}
+
+		if file != "" {
+			configFile, err = UnmarshalWithFile(file)
+			if err != nil {
+				return Envcontainer{}, "", err
+			}
+
+		}
+
+		defaultMountDir = pwd + "/.envcontainer/"
+
+	} else if errConfigFile != nil {
+		return Envcontainer{}, "", errConfigFile
+	}
+
+	if configFile.Container.Shell == "" {
+		configFile.Container.Shell = "bash"
+	}
+
+	return configFile, defaultMountDir, nil
+
 }
 
 func toSlice(maps map[string]string) []string {
