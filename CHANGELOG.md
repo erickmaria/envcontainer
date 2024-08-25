@@ -5,7 +5,8 @@
 - chore: remove volume when stop container
 - chore: remove option user on .envcontainer.yaml
 - chore: add new flag to start with vscode
-- chore: change start and stop command to up and down
+- feat: add new flag to start with vscode
+- feat: add commant to list envcontainers 
 - fix: regex to validate ports pattern
 
 ### Fixed

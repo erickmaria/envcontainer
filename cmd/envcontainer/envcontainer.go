@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/runtime/docker"
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
@@ -16,44 +15,6 @@ import (
 
 var cmd *cli.Command
 var cmds cli.CommandConfig
-var defaultMountDir string
-
-func getConfig(getCloser bool) template.Envcontainer {
-
-	configFile, errConfigFile := template.Unmarshal()
-
-	if getCloser {
-		file, err := syscmd.FindFileCloser(".envcontainer.yaml")
-		if err != nil {
-			panic(err)
-		}
-
-		pwd, _ := os.Getwd()
-		for i := 0; i < strings.Count(file, "../"); i++ {
-			pwd = strings.Join(strings.Split(pwd, "/")[:len(strings.Split(pwd, "/"))-1], "/")
-
-		}
-
-		if file != "" {
-			configFile, err = template.UnmarshalWithFile(file)
-			if err != nil {
-				panic(err)
-			}
-
-		}
-
-		defaultMountDir = pwd + "/.envcontainer/"
-
-	} else if errConfigFile != nil {
-		panic(errConfigFile)
-	}
-
-	if configFile.Container.Shell == "" {
-		configFile.Container.Shell = "bash"
-	}
-	return configFile
-
-}
 
 func init() {
 
@@ -78,7 +39,10 @@ func init() {
 			Desc: "build a image using envcontainer configuration in the current directory",
 			Exec: func() {
 
-				configFile := getConfig(false)
+				configFile, _, err := template.GetConfig(false)
+				if err != nil {
+					panic(err)
+				}
 
 				err = container.Build(ctx, types.BuildOptions{
 					ImageName:    configFile.Project.Name,
@@ -110,7 +74,10 @@ func init() {
 			Desc: "run the envcontainer configuration to start the container and link it to the current directory",
 			Exec: func() {
 
-				configFile := getConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+				configFile, defaultMountDir, err := template.GetConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+				if err != nil {
+					panic(err)
+				}
 
 				if configFile.AlwaysUpdate {
 					fmt.Println("Restat container...")
@@ -163,7 +130,10 @@ func init() {
 			},
 			Exec: func() {
 
-				configFile := getConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+				configFile, _, err := template.GetConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+				if err != nil {
+					panic(err)
+				}
 
 				var containerName = configFile.Project.Name
 				var noContainerNameSuffix = false
@@ -173,7 +143,7 @@ func init() {
 					noContainerNameSuffix = true
 				}
 
-				err := container.Down(ctx, types.ContainerOptions{
+				err = container.Down(ctx, types.ContainerOptions{
 					ContainerName:     containerName,
 					HostDirToBind:     path,
 					NoContainerSuffix: noContainerNameSuffix,
@@ -216,6 +186,36 @@ func init() {
 
 			},
 			Desc: "execute an .envcontainer on the current directory without saving it locally",
+		},
+		"ls": cli.Command{
+			Flags:   cli.Flag{},
+			Quetion: cli.Quetion{},
+			RunBeforeAll: func() {
+			},
+			Exec: func() {
+				configFiles, err := template.List()
+				if err != nil {
+					panic(err)
+				}
+
+				var containerOpts = map[string]types.ContainerOptions{}
+				for path, configs := range configFiles {
+					containerOpts[path] = types.ContainerOptions{
+						ContainerName: configs.Project.Name,
+						Ports:         configs.Container.Ports,
+						Shell:         configs.Container.Shell,
+						HostDirToBind: path,
+						Mounts:        configs.Mounts,
+					}
+				}
+
+				err = container.List(ctx, containerOpts)
+				if err != nil {
+					panic(err)
+				}
+
+			},
+			Desc: "",
 		},
 		"version": cli.Command{
 			Exec: func() {
