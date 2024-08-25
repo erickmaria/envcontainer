@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+
+- fix: version shown when running the version command
+
 ## v2.0.0 - 2024-08-25
 
 ### Added

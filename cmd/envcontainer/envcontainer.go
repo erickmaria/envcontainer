@@ -154,6 +154,7 @@ func init() {
 			},
 		},
 		"run": cli.Command{
+			Desc: "execute an .envcontainer on the current directory without saving it locally",
 			Flags: cli.Flag{
 				Values: map[string]cli.Values{
 					"name": {
@@ -185,13 +186,9 @@ func init() {
 				}
 
 			},
-			Desc: "execute an .envcontainer on the current directory without saving it locally",
 		},
 		"ls": cli.Command{
-			Flags:   cli.Flag{},
-			Quetion: cli.Quetion{},
-			RunBeforeAll: func() {
-			},
+			Desc: "list envcontainers",
 			Exec: func() {
 				configFiles, err := template.List()
 				if err != nil {
@@ -215,11 +212,10 @@ func init() {
 				}
 
 			},
-			Desc: "",
 		},
 		"version": cli.Command{
 			Exec: func() {
-				fmt.Println("Version: 1.2.0")
+				fmt.Println("Version: 2.0.1")
 			},
 			Desc: "show envcontainer version",
 		},
