@@ -1,13 +1,17 @@
 DEFAULT_BRANCH := main
 
 define _build
-	GOOS=$1 GOARCH=amd64 go build -o envcontainer cmd/envcontainer/envcontainer.go
+	GOOS=$1 GOARCH=amd64 go build -o envcontainer cmd/envcontainer/*.go
 endef
 
 .PHONY: compact/linux
 compact/linux:
 	$(call _build,linux)
 	@zip envcontainer_linux_amd64.zip envcontainer 
+
+.PHONY: build
+build:
+	$(call _build,linux)
 
 .PHONY: run
 run:

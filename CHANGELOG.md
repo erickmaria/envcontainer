@@ -3,6 +3,7 @@
 ### Added
 
 - fix: version shown when running the version command
+- chore: fragmented command line functions into different files
 
 ## v2.0.0 - 2024-08-25
 

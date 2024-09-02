@@ -1,5 +1,7 @@
 package types
 
+import "github.com/ErickMaria/envcontainer/internal/pkg/types"
+
 type ContainerOptions struct {
 	Shell             string
 	HomeDir           string
@@ -11,6 +13,6 @@ type ContainerOptions struct {
 	Ports             []string
 	HostDirToBind     string
 	DefaultMountDir   string
-	Mounts            []string
+	Mounts            []types.Mount
 	NoContainerSuffix bool
 }

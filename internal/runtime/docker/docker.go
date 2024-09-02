@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	pkgTypes "github.com/ErickMaria/envcontainer/internal/pkg/types"
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -76,84 +77,100 @@ func (docker *Docker) getContainer(ctx context.Context, containerName string) (t
 	return containers[0], nil
 }
 
-func (docker *Docker) buildMount(defaultMountDir string, mountStr []string) []mount.Mount {
+// func (docker *Docker) buildMount(defaultMountDir string, mountStr []string) []mount.Mount {
 
-	mounts := []mount.Mount{}
-	mountPrefix := "envcontainer"
+// 	mounts := []mount.Mount{}
+// 	mountPrefix := "envcontainer"
 
-	for k, v := range mountStr {
+// 	for k, v := range mountStr {
 
-		mountSplited := strings.Split(v, ":")
+// 		mountSplited := strings.Split(v, ":")
 
-		// fmt.Println(len(mountSplited), mountSplited)
+// 		// fmt.Println(len(mountSplited), mountSplited)
 
-		switch len(mountSplited) {
-		case 1:
+// 		switch len(mountSplited) {
+// 		case 1:
 
-			target := mountSplited[1-len(mountSplited)]
-			mounts = append(mounts, mount.Mount{
-				Type:   mount.TypeVolume,
-				Source: mountPrefix + "-" + strings.Trim(target, "/"),
-				Target: target,
-			})
-		case 2:
+// 			target := mountSplited[1-len(mountSplited)]
+// 			mounts = append(mounts, mount.Mount{
+// 				Type:   mount.TypeVolume,
+// 				Source: mountPrefix + "-" + strings.Trim(target, "/"),
+// 				Target: target,
+// 			})
+// 		case 2:
 
-			mountType := strings.ToLower(mountSplited[1])
+// 			mountType := strings.ToLower(mountSplited[1])
 
-			if strings.Contains(mountType, string(mount.TypeBind)) {
+// 			if strings.Contains(mountType, string(mount.TypeBind)) {
 
-				source := removeDuplicateSlashes(defaultMountDir + mountSplited[0])
+// 				source := removeDuplicateSlashes(defaultMountDir + mountSplited[0])
 
-				fmt.Println(source)
+// 				fmt.Println(source)
 
-				mounts = append(mounts, mount.Mount{
-					Type:   mount.TypeBind,
-					Source: source,
-					Target: mountSplited[0],
-					BindOptions: &mount.BindOptions{
-						CreateMountpoint: true,
-					},
-				})
+// 				mounts = append(mounts, mount.Mount{
+// 					Type:   mount.TypeBind,
+// 					Source: source,
+// 					Target: mountSplited[0],
+// 					BindOptions: &mount.BindOptions{
+// 						CreateMountpoint: true,
+// 					},
+// 				})
 
-			}
+// 			}
 
-			// when type volume or not define
-			mounts = append(mounts, mount.Mount{
-				Type:   mount.TypeVolume,
-				Source: mountPrefix + "-" + mountSplited[0],
-				Target: mountSplited[1],
-			})
+// 			// when type volume or not define
+// 			mounts = append(mounts, mount.Mount{
+// 				Type:   mount.TypeVolume,
+// 				Source: mountPrefix + "-" + mountSplited[0],
+// 				Target: mountSplited[1],
+// 			})
 
-		case 3:
-			mountType := strings.ToLower(mountSplited[2])
+// 		case 3:
+// 			mountType := strings.ToLower(mountSplited[2])
 
-			if strings.Contains(mountType, string(mount.TypeVolume)) {
+// 			if strings.Contains(mountType, string(mount.TypeVolume)) {
 
-				mounts = append(mounts, mount.Mount{
-					Type:   mount.TypeVolume,
-					Source: mountPrefix + "-" + mountSplited[0],
-					Target: mountSplited[1],
-				})
-				continue
-			} else if strings.Contains(mountType, string(mount.TypeBind)) {
+// 				mounts = append(mounts, mount.Mount{
+// 					Type:   mount.TypeVolume,
+// 					Source: mountPrefix + "-" + mountSplited[0],
+// 					Target: mountSplited[1],
+// 				})
+// 				continue
+// 			} else if strings.Contains(mountType, string(mount.TypeBind)) {
 
-				mounts = append(mounts, mount.Mount{
-					Type:   mount.TypeBind,
-					Source: mountSplited[0],
-					Target: mountSplited[1],
-				})
-				continue
-			}
+// 				mounts = append(mounts, mount.Mount{
+// 					Type:   mount.TypeBind,
+// 					Source: mountSplited[0],
+// 					Target: mountSplited[1],
+// 				})
+// 				continue
+// 			}
 
-			mountPatternNotMatchError(mountStr[k])
+// 			mountPatternNotMatchError(mountStr[k])
 
-		default:
-			mountPatternNotMatchError(mountStr[k])
-		}
+// 		default:
+// 			mountPatternNotMatchError(mountStr[k])
+// 		}
 
+// 	}
+
+// 	return mounts
+// }
+
+func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount) []mount.Mount {
+
+	dMounts := []mount.Mount{}
+
+	for _, v := range mounts {
+		dMounts = append(dMounts, mount.Mount{
+			Type:     mount.Type(v.Type),
+			Source:   v.Source,
+			Target:   v.Target,
+			ReadOnly: v.Readonly,
+		})
 	}
 
-	return mounts
+	return dMounts
 }
 
 func removeDuplicateSlashes(s string) string {
