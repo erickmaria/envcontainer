@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
+	"github.com/ErickMaria/envcontainer/internal/pkg/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,12 +30,6 @@ const (
 	TypeVolume Type = "volume"
 )
 
-type EnvcontainerMounts struct {
-	Type   Type   `yaml:"type"`
-	Source string `yaml:"source"`
-	Target string `yaml:"target"`
-}
-
 type Envcontainer struct {
 	Project struct {
 		Name        string `yaml:"name"`
@@ -49,7 +44,8 @@ type Envcontainer struct {
 	AlwaysUpdate bool `yaml:"always-update"`
 	AutoStop     bool `yaml:"auto-stop"`
 	mountDir     string
-	Mounts       []string `yaml:"mounts"`
+	// Mounts       []string `yaml:"mounts"`
+	Mounts []types.Mount `yaml:"mounts"`
 }
 
 func Initialization() error {
