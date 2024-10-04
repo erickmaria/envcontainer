@@ -2,6 +2,10 @@
 
 ### Added
 
+- feat: create init command
+
+## v2.1.1 - 2024-10-03
+
 - fix: version shown when running the version command
 - chore: fragmented command line functions into different files
 
