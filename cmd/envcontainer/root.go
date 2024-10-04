@@ -23,6 +23,7 @@ func Root() *cli.Command {
 	}
 
 	cmd, cmds = cli.NewCommand(cli.CommandConfig{
+		"init":    Init(),
 		"build":   Build(),
 		"up":      Up(),
 		"down":    Down(),

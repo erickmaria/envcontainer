@@ -11,7 +11,7 @@ type CommandConfig map[string]Command
 
 type Command struct {
 	Flags        Flag
-	Quetion      Quetion
+	Prompt      Prompt
 	RunBeforeAll func()
 	Exec         func()
 	Desc         string
@@ -38,7 +38,7 @@ func (c Command) Listener() {
 	if c.RunBeforeAll != nil {
 		c.RunBeforeAll()
 	}
-	c.Quetion.Make()
+	c.Prompt.Make()
 	c.Exec()
 }
 
@@ -78,14 +78,6 @@ func Help(descs map[string]Command) {
 			fmt.Printf("    --%s:     \t\t%v\n", flagKey, flagValue.Description)
 		}
 	}
-
-	// for commandKey, comandValue := range descs {
-	// 	fmt.Printf("%s:     \t\t%v\n", commandKey, descs[commandKey].Desc)
-	// 	for flagKey, flagValue := range comandValue.Flags.Values {
-	// 		fmt.Printf("    --%s:     \t\t%v\n", flagKey, flagValue.Description)
-	// 	}
-
-	// }
 
 	fmt.Println()
 }
