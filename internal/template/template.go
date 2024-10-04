@@ -3,6 +3,7 @@ package template
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -30,19 +31,23 @@ const (
 	TypeVolume Type = "volume"
 )
 
+type Project struct {
+	Name        string `yaml:"name"`
+	Version     string `yaml:"version"`
+	Description string `yaml:"description"`
+}
+
+type Container struct {
+	Shell string   `yaml:"shell"`
+	Ports []string `yaml:"ports"`
+	Build string   `yaml:"build"`
+}
+
 type Envcontainer struct {
-	Project struct {
-		Name        string `yaml:"name"`
-		Version     string `yaml:"version"`
-		Description string `yaml:"description"`
-	} `yaml:"project"`
-	Container struct {
-		Shell string   `yaml:"shell"`
-		Ports []string `yaml:"ports"`
-		Build string   `yaml:"build"`
-	} `yaml:"container"`
-	AlwaysUpdate bool `yaml:"always-update"`
-	AutoStop     bool `yaml:"auto-stop"`
+	Project      Project   `yaml:"project"`
+	Container    Container `yaml:"container"`
+	AlwaysUpdate bool      `yaml:"always-update"`
+	AutoStop     bool      `yaml:"auto-stop"`
 	mountDir     string
 	// Mounts       []string `yaml:"mounts"`
 	Mounts []types.Mount `yaml:"mounts"`
@@ -55,6 +60,20 @@ func Initialization() error {
 		return err
 	}
 
+	return nil
+}
+
+func Marshal(envcontainer Envcontainer) error {
+
+	out, err := yaml.Marshal(envcontainer)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(fileLocation, out, os.ModePerm)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
