@@ -1,8 +1,7 @@
 module github.com/ErickMaria/envcontainer
 
 go 1.21
-
-toolchain go1.22.3
+toolchain go1.23.7
 
 require (
 	github.com/docker/docker v26.1.4+incompatible
@@ -38,8 +37,8 @@ require (
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gotest.tools/v3 v3.4.0 // indirect
