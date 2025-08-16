@@ -1,11 +1,14 @@
+# Changelog
+
 ## Unreleased
 
+## v2.2.1 - 2025-08-16
+
+- fix: bump2version changelog file"
+
+## v2.2.0 - 2025-08-16
+
 - feat: add support for creating and connecting network to container
-
-### Added
-
-- fix: version shown when running the version command
-- chore: fragmented command line functions into different files
 
 ## v2.0.0 - 2024-08-25
 
