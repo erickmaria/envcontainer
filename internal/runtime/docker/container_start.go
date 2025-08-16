@@ -62,6 +62,7 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 
 func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool) error {
 
+	var err error
 	exposedPorts := nat.PortSet{}
 	portBindings := nat.PortMap{}
 
@@ -84,6 +85,14 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 			bindPort.HostPort = port
 			portBindings[nat.Port(port)] = []nat.PortBinding{bindPort}
 
+		}
+	}
+
+	networkIDs := []string{}
+	if len(options.Networks) > 0 {
+		networkIDs, err = docker.createNetwork(ctx, options.Networks)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -114,6 +123,12 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		ID:   containerResponse.ID,
 	}, container.StartOptions{})
 
+	if len(networkIDs) > 0 {
+		for _, netId := range networkIDs {
+			docker.client.NetworkConnect(ctx, netId, containerResponse.ID, &network.EndpointSettings{})
+		}
+	}
+
 	if code {
 		return docker.code(ctx, containerResponse.ID, options)
 	}
@@ -143,7 +158,7 @@ func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options ru
 	for _, shell := range shells {
 		options.Commands = []string{shell}
 		if err = docker.containerCreateAndStart(ctx, options, code); err == nil {
-			return nil
+			return err
 		}
 	}
 

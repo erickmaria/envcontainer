@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
+
 	"github.com/ErickMaria/envcontainer/internal/template"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
@@ -30,6 +31,7 @@ func Up() cli.Command {
 		Exec: func() {
 
 			configFile, defaultMountDir, err := template.GetConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+
 			if err != nil {
 				panic(err)
 			}
@@ -64,6 +66,7 @@ func Up() cli.Command {
 				HostDirToBind:   path,
 				Mounts:          configFile.Mounts,
 				DefaultMountDir: defaultMountDir,
+				Networks:        configFile.Container.Networks,
 			}, code)
 			if err != nil {
 				panic(err)

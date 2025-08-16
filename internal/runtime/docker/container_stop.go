@@ -34,12 +34,26 @@ func (docker *Docker) Down(ctx context.Context, options runtimeTypes.ContainerOp
 			RemoveVolumes: true,
 		})
 
-		for _, v := range getContainer.Mounts {
-			if v.Type == mount.TypeVolume {
-				docker.client.VolumeRemove(ctx, v.Name, true)
+		for netName, cNet := range getContainer.NetworkSettings.Networks {
+			for _, oNet := range options.Networks {
+				if netName == oNet.Name {
+					if !oNet.External {
+						err := docker.client.NetworkRemove(ctx, cNet.NetworkID)
+						return err
+					}
+				}
 			}
 		}
+
+		for _, v := range getContainer.Mounts {
+			if v.Type == mount.TypeVolume {
+				err := docker.client.VolumeRemove(ctx, v.Name, true)
+				return err
+			}
+		}
+
 		fmt.Println("Success!")
 	}
 
+	return  nil
 }

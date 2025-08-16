@@ -1,5 +1,7 @@
 ## Unreleased
 
+- feat: add support for creating and connecting network to container
+
 ### Added
 
 - fix: version shown when running the version command
