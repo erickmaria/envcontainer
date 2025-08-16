@@ -37,15 +37,15 @@ type Envcontainer struct {
 		Description string `yaml:"description"`
 	} `yaml:"project"`
 	Container struct {
-		Shell string   `yaml:"shell"`
-		Ports []string `yaml:"ports"`
-		Build string   `yaml:"build"`
+		Shell    string          `yaml:"shell"`
+		Ports    []string        `yaml:"ports"`
+		Build    string          `yaml:"build"`
+		Networks []types.Network `yaml:"networks"`
 	} `yaml:"container"`
 	AlwaysUpdate bool `yaml:"always-update"`
 	AutoStop     bool `yaml:"auto-stop"`
 	mountDir     string
-	// Mounts       []string `yaml:"mounts"`
-	Mounts []types.Mount `yaml:"mounts"`
+	Mounts       []types.Mount `yaml:"mounts"`
 }
 
 func Initialization() error {
@@ -78,6 +78,7 @@ func Unmarshal() (Envcontainer, error) {
 	}
 
 	err = validate(envcontainer)
+
 	if err != nil {
 		return Envcontainer{}, err
 	}

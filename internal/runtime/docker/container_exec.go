@@ -40,6 +40,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 		return docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
+			Networks: options.Networks,
 		})
 	}
 

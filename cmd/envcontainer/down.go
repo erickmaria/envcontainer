@@ -39,6 +39,7 @@ func Down() cli.Command {
 				ContainerName:     containerName,
 				HostDirToBind:     path,
 				NoContainerSuffix: noContainerNameSuffix,
+				Networks:          configFile.Container.Networks,
 			})
 			if err != nil {
 				panic(err)
