@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.2.1 - 2025-08-16
+
 - fix: bump2version changelog file"
 
 ## v2.2.0 - 2025-08-16
