@@ -157,7 +157,7 @@ func (docker *Docker) getContainer(ctx context.Context, containerName string) (t
 // 	return mounts
 // }
 
-func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount) []mount.Mount {
+func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount, labels map[string]string) []mount.Mount {
 
 	dMounts := []mount.Mount{}
 
@@ -167,6 +167,9 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 			Source:   v.Source,
 			Target:   v.Target,
 			ReadOnly: v.Readonly,
+			VolumeOptions: &mount.VolumeOptions{
+				Labels: labels,
+			},
 		})
 	}
 

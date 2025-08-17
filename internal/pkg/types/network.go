@@ -6,6 +6,7 @@ type Network struct {
 	Driver     string            `yaml:"driver,omitempty"`
 	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
 	IPAM       *IPAM             `yaml:"ipam,omitempty"`
+	// Labels     map[string]string `yaml:"labels,omitempty"`
 }
 
 type IPAM struct {

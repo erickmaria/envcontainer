@@ -42,6 +42,7 @@ type Envcontainer struct {
 		Build    string          `yaml:"build"`
 		Networks []types.Network `yaml:"networks"`
 	} `yaml:"container"`
+	// Labels       []string `yaml:"labels"`
 	AlwaysUpdate bool `yaml:"always-update"`
 	AutoStop     bool `yaml:"auto-stop"`
 	mountDir     string

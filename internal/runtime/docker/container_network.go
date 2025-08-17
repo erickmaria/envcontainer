@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 )
 
-func (docker *Docker) createNetwork(ctx context.Context, options []internalType.Network) ([]string, error) {
+func (docker *Docker) createNetwork(ctx context.Context, options []internalType.Network, labels map[string]string) ([]string, error) {
 
 	networkIds := []string{}
 	for _, netOpts := range options {
@@ -32,9 +32,9 @@ func (docker *Docker) createNetwork(ctx context.Context, options []internalType.
 			}
 
 			if len(netList) == 0 {
-								return []string{}, errors.New("network with name "+netOpts.Name+" does not exist")
+				return []string{}, errors.New("network with name " + netOpts.Name + " does not exist")
 			}
-			
+
 			networkIds = append(networkIds, netList[0].ID)
 			continue
 		}
@@ -54,6 +54,7 @@ func (docker *Docker) createNetwork(ctx context.Context, options []internalType.
 			CheckDuplicate: true,
 			Driver:         netOpts.Driver,
 			IPAM:           &networkIPAMConfig,
+			Labels:         labels,
 		}
 
 		resp, err := docker.client.NetworkCreate(ctx, netOpts.Name, networkConfig)
