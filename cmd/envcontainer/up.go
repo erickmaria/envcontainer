@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 
@@ -57,6 +58,13 @@ func Up() cli.Command {
 
 			fmt.Println("Stating container...")
 
+			commonLabels := map[string]string{
+				"envcontainer-project-path":        strings.TrimSuffix(defaultMountDir, ".envcontainer/"),
+				"envcontainer-project-name":        configFile.Project.Name,
+				"envcontainer-project-version":     configFile.Project.Version,
+				"envcontainer-project-description": configFile.Project.Description,
+			}
+
 			err = container.Up(ctx, types.ContainerOptions{
 				AutoStop:        autoStop,
 				ContainerName:   configFile.Project.Name,
@@ -67,6 +75,7 @@ func Up() cli.Command {
 				Mounts:          configFile.Mounts,
 				DefaultMountDir: defaultMountDir,
 				Networks:        configFile.Container.Networks,
+				Labels:          commonLabels,
 			}, code)
 			if err != nil {
 				panic(err)

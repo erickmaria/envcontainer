@@ -15,5 +15,6 @@ type ContainerOptions struct {
 	DefaultMountDir   string
 	Mounts            []types.Mount
 	Networks          []types.Network
+	Labels            map[string]string
 	NoContainerSuffix bool
 }
