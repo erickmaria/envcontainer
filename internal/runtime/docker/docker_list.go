@@ -19,7 +19,7 @@ func (docker *Docker) List(ctx context.Context, options map[string]types.Contain
 	sort.Strings(paths)
 
 	for _, path := range paths {
-		getContainer, err := docker.getContainer(ctx, options[path].ContainerName)
+		getContainer, err := docker.getContainer(ctx, options[path].Labels)
 		if err != nil {
 			return err
 		}

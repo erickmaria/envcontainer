@@ -56,15 +56,31 @@ func (docker *Docker) addContainerSuffix(options *runtimeTypes.ContainerOptions)
 	}
 }
 
-func (docker *Docker) getContainer(ctx context.Context, containerName string) (types.Container, error) {
+func (docker *Docker) getContainer(ctx context.Context, labels map[string]string) (types.Container, error) {
+
+	kvLabels := []filters.KeyValuePair{}
+
+	for k, v := range labels {
+		if strings.Contains(k, "project-name") || strings.Contains(k, "project-path") {
+			kvLabels = append(kvLabels, filters.KeyValuePair{
+				Key:   "label",
+				Value: k + "=" + v,
+			})
+		}
+	}
 
 	containers, err := docker.client.ContainerList(ctx, container.ListOptions{
-		Limit: 1,
-		Filters: filters.NewArgs(filters.KeyValuePair{
-			Key:   "name",
-			Value: containerName,
-		}),
+		Limit:   1,
+		Filters: filters.NewArgs(kvLabels...),
 	})
+
+	// containers, err := docker.client.ContainerList(ctx, container.ListOptions{
+	// 	Limit: 1,
+	// 	Filters: filters.NewArgs(filters.KeyValuePair{
+	// 		Key:   "name",
+	// 		Value: containerName,
+	// 	}),
+	// })
 
 	if len(containers) == 0 {
 		return types.Container{}, nil
@@ -75,6 +91,34 @@ func (docker *Docker) getContainer(ctx context.Context, containerName string) (t
 	}
 
 	return containers[0], nil
+}
+
+func (docker *Docker) getNetwork(ctx context.Context, labels map[string]string) ([]types.NetworkResource, error) {
+
+	kvLabels := []filters.KeyValuePair{}
+
+	for k, v := range labels {
+		if strings.Contains(k, "project-name") || strings.Contains(k, "project-path") {
+			kvLabels = append(kvLabels, filters.KeyValuePair{
+				Key:   "label",
+				Value: k + "=" + v,
+			})
+		}
+	}
+
+	networks, err := docker.client.NetworkList(ctx, types.NetworkListOptions{
+		Filters: filters.NewArgs(kvLabels...),
+	})
+
+	if len(networks) == 0 {
+		return []types.NetworkResource{}, nil
+	}
+
+	if err != nil {
+		return []types.NetworkResource{}, err
+	}
+
+	return networks, nil
 }
 
 // func (docker *Docker) buildMount(defaultMountDir string, mountStr []string) []mount.Mount {

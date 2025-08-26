@@ -59,10 +59,10 @@ func Up() cli.Command {
 			fmt.Println("Stating container...")
 
 			commonLabels := map[string]string{
-				"envcontainer-project-path":        strings.TrimSuffix(defaultMountDir, ".envcontainer/"),
-				"envcontainer-project-name":        configFile.Project.Name,
-				"envcontainer-project-version":     configFile.Project.Version,
-				"envcontainer-project-description": configFile.Project.Description,
+				"envcontainer/project-path":        strings.TrimSuffix(defaultMountDir, ".envcontainer/"),
+				"envcontainer/project-name":        configFile.Project.Name,
+				"envcontainer/project-version":     configFile.Project.Version,
+				"envcontainer/project-description": configFile.Project.Description,
 			}
 
 			err = container.Up(ctx, types.ContainerOptions{

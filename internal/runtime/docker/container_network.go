@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	internalType "github.com/ErickMaria/envcontainer/internal/pkg/types"
 	"github.com/docker/docker/api/types"
@@ -13,8 +12,37 @@ import (
 
 func (docker *Docker) createNetwork(ctx context.Context, options []internalType.Network, labels map[string]string) ([]string, error) {
 
+	getNetwork, err := docker.getNetwork(ctx, labels)
+	if err != nil {
+		return []string{}, err
+	}
+
+	// if len(getNetwork) != 0 {
+	// 	networkIds := []string{}
+
+	// 	// for _, net := range getNetwork {
+	// 	// 	networkIds = append(networkIds, net.ID)
+	// 	// }
+	// }
+
 	networkIds := []string{}
+	networkIdSkip := false
 	for _, netOpts := range options {
+
+		if len(getNetwork) != 0 {
+			for _, net := range getNetwork {
+
+				if netOpts.Name == net.Name {
+					networkIds = append(networkIds, net.ID)
+					networkIdSkip = true
+				}
+			}
+		}
+
+		if networkIdSkip {
+			networkIdSkip = false
+			continue
+		}
 
 		if netOpts.External {
 
@@ -64,7 +92,7 @@ func (docker *Docker) createNetwork(ctx context.Context, options []internalType.
 
 		networkIds = append(networkIds, resp.ID)
 
-		fmt.Printf("Created container %s on network %s: %s\n", resp.ID, netOpts.Name, resp.Warning)
+		// fmt.Printf("Created container %s on network %s: %s\n", resp.ID, netOpts.Name, resp.Warning)
 	}
 
 	return networkIds, nil

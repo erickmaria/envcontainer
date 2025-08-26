@@ -29,7 +29,7 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 
 	docker.addContainerSuffix(&options)
 
-	getContainer, err := docker.getContainer(ctx, options.ContainerName)
+	getContainer, err := docker.getContainer(ctx, options.Labels)
 	if err != nil {
 		return err
 	}

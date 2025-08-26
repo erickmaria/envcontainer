@@ -2,13 +2,15 @@ project:
   name: envcontainer
   version: 1.0.0
   description: Create a development environment for envcontainer.
-auto-stop: true
+# auto-stop: true
 container:
   ports: 
     - 22:2234
   networks:
     - name: envcontainer
-      # external: true
+    - name: envcontainer2
+    - name: kind
+      external: true
   build: |
     FROM golang:1.22.3
 

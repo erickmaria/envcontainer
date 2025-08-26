@@ -14,14 +14,14 @@ func (docker *Docker) Down(ctx context.Context, options runtimeTypes.ContainerOp
 	docker.addContainerSuffix(&options)
 
 	for {
-		getContainer, err := docker.getContainer(ctx, options.ContainerName)
+		getContainer, err := docker.getContainer(ctx, options.Labels)
 
 		if err != nil {
 			return err
 		}
 
 		if getContainer.ID == "" {
-			fmt.Println("no containers found with name '" + options.ContainerName + "'")
+			// fmt.Println("no containers found with name '" + options.ContainerName + "'")
 			return nil
 		}
 
@@ -39,7 +39,9 @@ func (docker *Docker) Down(ctx context.Context, options runtimeTypes.ContainerOp
 				if netName == oNet.Name {
 					if !oNet.External {
 						err := docker.client.NetworkRemove(ctx, cNet.NetworkID)
-						return err
+						if err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -48,12 +50,14 @@ func (docker *Docker) Down(ctx context.Context, options runtimeTypes.ContainerOp
 		for _, v := range getContainer.Mounts {
 			if v.Type == mount.TypeVolume {
 				err := docker.client.VolumeRemove(ctx, v.Name, true)
-				return err
+				if err != nil {
+					return err
+				}
 			}
 		}
 
 		fmt.Println("Success!")
 	}
 
-	return  nil
+	return nil
 }
