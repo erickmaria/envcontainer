@@ -65,6 +65,10 @@ func Up() cli.Command {
 				"envcontainer/project-description": configFile.Project.Description,
 			}
 
+			if configFile.Container.NetworkMode == "" {
+				configFile.Container.NetworkMode = "default"
+			}
+
 			err = container.Up(ctx, types.ContainerOptions{
 				AutoStop:        autoStop,
 				ContainerName:   configFile.Project.Name,
@@ -74,6 +78,7 @@ func Up() cli.Command {
 				HostDirToBind:   path,
 				Mounts:          configFile.Mounts,
 				DefaultMountDir: defaultMountDir,
+				NetworkMode:     configFile.Container.NetworkMode,
 				Networks:        configFile.Container.Networks,
 				Labels:          commonLabels,
 			}, code)

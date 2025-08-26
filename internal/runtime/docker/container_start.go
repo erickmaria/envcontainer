@@ -113,7 +113,7 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		PortBindings: portBindings,
 		Binds:        []string{bindProject},
 		Mounts:       mounts,
-		NetworkMode:  network.NetworkBridge,
+		NetworkMode:  container.NetworkMode(options.NetworkMode),
 	}, &network.NetworkingConfig{}, nil, options.ContainerName)
 	if err != nil {
 		return err
@@ -127,7 +127,10 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 
 	if len(networkIDs) > 0 {
 		for _, netId := range networkIDs {
-			docker.client.NetworkConnect(ctx, netId, containerResponse.ID, &network.EndpointSettings{})
+			err := docker.client.NetworkConnect(ctx, netId, containerResponse.ID, &network.EndpointSettings{})
+			if err != nil {
+				fmt.Println("Error to connect network:", netId[:12], err)
+			}
 		}
 	}
 

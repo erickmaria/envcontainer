@@ -14,6 +14,7 @@ type ContainerOptions struct {
 	HostDirToBind     string
 	DefaultMountDir   string
 	Mounts            []types.Mount
+	NetworkMode       string
 	Networks          []types.Network
 	Labels            map[string]string
 	NoContainerSuffix bool

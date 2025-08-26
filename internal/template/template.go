@@ -37,14 +37,15 @@ type Envcontainer struct {
 		Description string `yaml:"description"`
 	} `yaml:"project"`
 	Container struct {
-		Shell    string          `yaml:"shell"`
-		Ports    []string        `yaml:"ports"`
-		Build    string          `yaml:"build"`
-		Networks []types.Network `yaml:"networks"`
+		Shell       string          `yaml:"shell"`
+		Ports       []string        `yaml:"ports"`
+		Build       string          `yaml:"build"`
+		NetworkMode string          `yaml:"network_mode"`
+		Networks    []types.Network `yaml:"networks"`
 	} `yaml:"container"`
 	// Labels       []string `yaml:"labels"`
-	AlwaysUpdate bool `yaml:"always-update"`
-	AutoStop     bool `yaml:"auto-stop"`
+	AlwaysUpdate bool `yaml:"always_update"`
+	AutoStop     bool `yaml:"auto_stop"`
 	mountDir     string
 	Mounts       []types.Mount `yaml:"mounts"`
 }

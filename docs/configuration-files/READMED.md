@@ -37,7 +37,7 @@ container:
 # 
 always-update: false
 # Stop the container when leaving it
-auto-stop: false
+auto_stop: false
 # mount container volumes
 # support types 'volume' and 'bind' 
 # ex: source:target:(volume|bind)

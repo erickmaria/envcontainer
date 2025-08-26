@@ -37,7 +37,7 @@ container:
   # write Dockerfile to build container
   build: |
     FROM ubuntu:latest
-auto-stop: false
+auto_stop: false
 
 ```
 For more information about envcontainer, run `envcontainer help` 
