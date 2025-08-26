@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.5.0 - 2025-08-26
+
 - feat: add network mode on build image
 
 ## v2.4.0 - 2025-08-26
