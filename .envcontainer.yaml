@@ -1,0 +1,56 @@
+project:
+  name: envcontainer
+  version: 1.0.0
+  description: Create a development environment for envcontainer.
+# auto-stop: true
+container:
+  ports: 
+    - 22:2234
+  networks:
+    - name: envcontainer
+    - name: envcontainer2
+    - name: kind
+      external: true
+  build: |
+    FROM golang:1.22.3
+
+    RUN apt-get update && \
+        apt-get install -y openssh-server sudo curl tar && \
+        mkdir /var/run/sshd
+
+    # ADD USER    
+    RUN groupadd -g 1001 envcontainer  && \
+        useradd -ms /bin/bash -u 1001 -g envcontainer envcontainer && \
+        echo 'envcontainer:envcontainer' | chpasswd && \
+        echo "envcontainer ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    
+    # INSTALL DOCKER
+    RUN sudo curl -fsSL https://get.docker.com -o get-docker.sh && \
+        sudo sh get-docker.sh && \
+        sudo rm -f get-docker.sh
+    USER envcontainer
+
+    # INSTALL DOCKER - Manage Docker as a non-root user
+    RUN sudo groupadd docker &> /dev/null
+    RUN sudo usermod -aG docker $(whoami)
+
+
+    # INSTALL uv
+    RUN curl -LsSf https://astral.sh/uv/install.sh | sh 
+
+    # uv tool install bump2version==1.0.1
+
+    RUN git config --global user.email "erickmaria08@gmail.com" && \
+        git config --global user.name "Erick Maria"
+
+    RUN mkdir -p /home/envcontainer/.vscode-server
+
+    CMD ["sudo", "/usr/sbin/sshd", "-D"]
+
+mounts:
+  - type: bind
+    source: /var/run/docker.sock
+    target: /var/run/docker.sock
+  # - type: volume
+  #   source: envcontainer-tmp
+  #   target: /tmp

@@ -29,7 +29,7 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 
 	docker.addContainerSuffix(&options)
 
-	getContainer, err := docker.getContainer(ctx, options.ContainerName)
+	getContainer, err := docker.getContainer(ctx, options.Labels)
 	if err != nil {
 		return err
 	}
@@ -90,13 +90,14 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 
 	networkIDs := []string{}
 	if len(options.Networks) > 0 {
-		networkIDs, err = docker.createNetwork(ctx, options.Networks)
+
+		networkIDs, err = docker.createNetwork(ctx, options.Networks, options.Labels)
 		if err != nil {
 			return err
 		}
 	}
 
-	mounts := docker.buildMount(options.DefaultMountDir, options.Mounts)
+	mounts := docker.buildMount(options.DefaultMountDir, options.Mounts, options.Labels)
 
 	bindProject := options.HostDirToBind + ":/home/" + options.ContainerName
 
@@ -107,6 +108,7 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		ExposedPorts: exposedPorts,
 		Tty:          true,
 		Hostname:     options.ContainerName,
+		Labels:       options.Labels,
 	}, &container.HostConfig{
 		PortBindings: portBindings,
 		Binds:        []string{bindProject},

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- chore: add labels to envcontainer container components
+
 ## v2.2.1 - 2025-08-16
 
 - fix: bump2version changelog file"
