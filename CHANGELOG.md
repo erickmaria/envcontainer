@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.3.0 - 2025-08-26
+
 - chore: add labels to envcontainer container components
 
 ## v2.2.1 - 2025-08-16
