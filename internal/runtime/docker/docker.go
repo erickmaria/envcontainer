@@ -162,15 +162,28 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 	dMounts := []mount.Mount{}
 
 	for _, v := range mounts {
+
+		if v.Type == "volume" {
+			dMounts = append(dMounts, mount.Mount{
+				Type:     mount.Type(v.Type),
+				Source:   v.Source,
+				Target:   v.Target,
+				ReadOnly: v.Readonly,
+				VolumeOptions: &mount.VolumeOptions{
+					DriverConfig: &mount.Driver{},
+					Labels:       labels,
+				},
+			})
+			continue
+		}
+
 		dMounts = append(dMounts, mount.Mount{
 			Type:     mount.Type(v.Type),
 			Source:   v.Source,
 			Target:   v.Target,
 			ReadOnly: v.Readonly,
-			VolumeOptions: &mount.VolumeOptions{
-				Labels: labels,
-			},
 		})
+
 	}
 
 	return dMounts

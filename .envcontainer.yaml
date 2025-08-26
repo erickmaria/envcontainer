@@ -8,7 +8,7 @@ container:
     - 22:2234
   networks:
     - name: envcontainer
-    #   external: true
+      # external: true
   build: |
     FROM golang:1.22.3
 
@@ -46,10 +46,9 @@ container:
     CMD ["sudo", "/usr/sbin/sshd", "-D"]
 
 mounts:
-#   - /var/run/docker.sock:/var/run/docker.sock:bind
   - type: bind
     source: /var/run/docker.sock
     target: /var/run/docker.sock
-  - type: volume
-    source: envcontainer-tmp
-    target: /tmp
+  # - type: volume
+  #   source: envcontainer-tmp
+  #   target: /tmp
