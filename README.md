@@ -37,7 +37,7 @@ container:
   # write Dockerfile to build container
   build: |
     FROM ubuntu:latest
-auto-stop: false
+auto_stop: false
 
 ```
 For more information about envcontainer, run `envcontainer help` 
@@ -59,7 +59,7 @@ run:                    execute an .envcontainer on the current directory withou
 up:                     run the envcontainer configuration to start the container and link it to the current directory
     --code:                     open with vscode
     --get-closer:               will get the closest configuration file to run a new container
-    --auto-stop:                terminal shell that must be used
+    --auto_stop:                terminal shell that must be used
 version:                show envcontainer version
 ```
 

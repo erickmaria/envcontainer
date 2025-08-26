@@ -2,10 +2,11 @@ project:
   name: envcontainer
   version: 1.0.0
   description: Create a development environment for envcontainer.
-# auto-stop: true
+auto_stop: true
 container:
   ports: 
     - 22:2234
+  network_mode: default
   networks:
     - name: envcontainer
     - name: envcontainer2

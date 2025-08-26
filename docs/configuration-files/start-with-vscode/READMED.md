@@ -32,7 +32,7 @@ container:
     # Start SSH server
     CMD ["sudo", "/usr/sbin/sshd", "-D"]
 
-auto-stop: false
+auto_stop: false
 
 ```
 
