@@ -16,10 +16,15 @@ func Build() cli.Command {
 				panic(err)
 			}
 
+			if configFile.Container.NetworkMode == "" {
+				configFile.Container.NetworkMode = "default"
+			}
+
 			err = container.Build(ctx, types.BuildOptions{
 				ImageName:    configFile.Project.Name,
 				Dockerfile:   configFile.Container.Build,
 				BuildContext: configFile.GetTmpDockerfileDir(),
+				NetworkMode:  configFile.Container.NetworkMode,
 			})
 			if err != nil {
 				panic(err)

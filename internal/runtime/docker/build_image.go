@@ -20,8 +20,9 @@ func (docker *Docker) Build(ctx context.Context, options runtimeTypes.BuildOptio
 	}
 
 	imageBuildResponse, err := docker.client.ImageBuild(ctx, buildCtx, types.ImageBuildOptions{
-		Tags:       []string{"envcontainer/" + options.ImageName},
-		Dockerfile: "Dockerfile",
+		Tags:        []string{"envcontainer/" + options.ImageName},
+		NetworkMode: options.NetworkMode,
+		Dockerfile:  "Dockerfile",
 	})
 	if err != nil {
 		return err
