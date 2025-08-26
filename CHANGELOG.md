@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: add network mode
+
 ## v2.3.0 - 2025-08-26
 
 - chore: add labels to envcontainer container components
