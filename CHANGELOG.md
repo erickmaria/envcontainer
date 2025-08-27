@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.6.0 - 2025-08-27
+
 - fix: vscode integration in host network mode
 - feat: add new flag `--port` in `up` command
 
