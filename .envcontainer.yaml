@@ -4,19 +4,19 @@ project:
   description: Create a development environment for envcontainer.
 auto_stop: true
 container:
-  ports: 
-    - 22:2234
-  network_mode: default
-  networks:
-    - name: envcontainer
-    - name: envcontainer2
-    - name: kind
-      external: true
+  # ports: 
+  #   - 22:2234
+  # network_mode: host
+  # networks:
+  #   - name: envcontainer
+  #   - name: envcontainer2
+  #   - name: kind
+  #     external: true
   build: |
     FROM golang:1.22.3
 
     RUN apt-get update && \
-        apt-get install -y openssh-server sudo curl tar && \
+        apt-get install -y iproute2 openssh-server sudo curl tar && \
         mkdir /var/run/sshd
 
     # ADD USER    
@@ -46,7 +46,9 @@ container:
 
     RUN mkdir -p /home/envcontainer/.vscode-server
 
+    # CMD ["sudo", "/usr/sbin/sshd", "-D", "-p", "2222"]
     CMD ["sudo", "/usr/sbin/sshd", "-D"]
+
 
 mounts:
   - type: bind

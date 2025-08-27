@@ -26,6 +26,10 @@ func Up() cli.Command {
 					Defaulvalue: "false",
 					Description: "open with vscode",
 				},
+				"port": {
+					Defaulvalue: "22",
+					Description: "ssh port that vscode will use connect",
+				},
 			},
 		},
 		Desc: "run the envcontainer configuration to start the container and link it to the current directory",
@@ -51,6 +55,7 @@ func Up() cli.Command {
 
 			autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
 			code := *cmd.Flags.Values["code"].ValueBool
+			port := *cmd.Flags.Values["port"].ValueString
 
 			if configFile.AutoStop {
 				autoStop = configFile.AutoStop
@@ -81,7 +86,7 @@ func Up() cli.Command {
 				NetworkMode:     configFile.Container.NetworkMode,
 				Networks:        configFile.Container.Networks,
 				Labels:          commonLabels,
-			}, code)
+			}, code, port)
 			if err != nil {
 				panic(err)
 			}

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- fix: vscode integration in host network mode
+- feat: add new flag `--port` in `up` command
+
 ## v2.5.0 - 2025-08-26
 
 - feat: add network mode on build image
