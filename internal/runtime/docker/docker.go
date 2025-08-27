@@ -3,10 +3,11 @@ package docker
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
+	"time"
 
 	pkgTypes "github.com/ErickMaria/envcontainer/internal/pkg/types"
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
@@ -233,16 +234,16 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 	return dMounts
 }
 
-func removeDuplicateSlashes(s string) string {
-	re := regexp.MustCompile(`/{2,}`)
-	return re.ReplaceAllString(s, "/")
-}
+// func removeDuplicateSlashes(s string) string {
+// 	re := regexp.MustCompile(`/{2,}`)
+// 	return re.ReplaceAllString(s, "/")
+// }
 
-func mountPatternNotMatchError(mount string) {
-	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
-}
+// func mountPatternNotMatchError(mount string) {
+// 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
+// }
 
-func (docker *Docker) code(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) code(ctx context.Context, containerID string, port string, options runtimeTypes.ContainerOptions) error {
 
 	inspect, err := docker.client.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -256,12 +257,21 @@ func (docker *Docker) code(ctx context.Context, containerID string, options runt
 		})
 	}
 
-	var host = inspect.NetworkSettings.IPAddress + ":22"
+	address := inspect.NetworkSettings.IPAddress
+	if strings.ToLower(options.NetworkMode) == "host" {
+		address = "0.0.0.0"
+	}
 
+	var host = fmt.Sprintf("%s:%s", address, port)
 	for i, p := range inspect.NetworkSettings.Ports {
 		if strings.Contains("22", i.Port()) {
-			host = "localhost:" + p[0].HostPort
+			host = fmt.Sprintf("%s:%s", address, p[0].HostPort)
 		}
+	}
+
+	if !docker.isPortAvailable(address, port, 3*time.Second) {
+		fmt.Println("port " + port + " is not available. Try to use --port flag or try again")
+		os.Exit(1)
 	}
 
 	connection := fmt.Sprint("vscode-remote://ssh-remote+"+inspect.Config.User+"@"+host, "/home/"+options.ContainerName)
@@ -279,4 +289,17 @@ func (docker *Docker) code(ctx context.Context, containerID string, options runt
 	}
 
 	return nil
+}
+
+func (docker *Docker) isPortAvailable(host string, port string, timeout time.Duration) bool {
+	address := fmt.Sprintf("%s:%s", host, port)
+
+	conn, err := net.DialTimeout("tcp", address, timeout)
+
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+
+	return true
 }
