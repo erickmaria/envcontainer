@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
@@ -22,7 +24,7 @@ func Down() cli.Command {
 		},
 		Exec: func() {
 
-			configFile, _, err := template.GetConfig(*cmd.Flags.Values["get-closer"].ValueBool)
+			configFile, defaultMountDir, err := template.GetConfig(*cmd.Flags.Values["get-closer"].ValueBool)
 			if err != nil {
 				panic(err)
 			}
@@ -35,11 +37,19 @@ func Down() cli.Command {
 				noContainerNameSuffix = true
 			}
 
+			commonLabels := map[string]string{
+				"envcontainer/project-path": strings.TrimSuffix(defaultMountDir, ".envcontainer/"),
+				"envcontainer/project-name": configFile.Project.Name,
+				// "envcontainer/project-version":     configFile.Project.Version,
+				// "envcontainer/project-description": configFile.Project.Description,
+			}
+
 			err = container.Down(ctx, types.ContainerOptions{
 				ContainerName:     containerName,
 				HostDirToBind:     path,
 				NoContainerSuffix: noContainerNameSuffix,
 				Networks:          configFile.Container.Networks,
+				Labels:            commonLabels,
 			})
 			if err != nil {
 				panic(err)
