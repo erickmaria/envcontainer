@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.7.1 - 2025-08-31
+
 - fix: `down` commmand removing all containers
 
 ## v2.7.0 - 2025-08-31
