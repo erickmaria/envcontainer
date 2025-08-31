@@ -26,6 +26,10 @@ func Up() cli.Command {
 					Defaulvalue: "false",
 					Description: "open with vscode",
 				},
+				"host": {
+					Defaulvalue: "",
+					Description: "ssh host that vscode will use connect",
+				},
 				"port": {
 					Defaulvalue: "22",
 					Description: "ssh port that vscode will use connect",
@@ -55,6 +59,7 @@ func Up() cli.Command {
 
 			autoStop := *cmd.Flags.Values["auto-stop"].ValueBool
 			code := *cmd.Flags.Values["code"].ValueBool
+			host := *cmd.Flags.Values["host"].ValueString
 			port := *cmd.Flags.Values["port"].ValueString
 
 			if configFile.AutoStop {
@@ -86,7 +91,7 @@ func Up() cli.Command {
 				NetworkMode:     configFile.Container.NetworkMode,
 				Networks:        configFile.Container.Networks,
 				Labels:          commonLabels,
-			}, code, port)
+			}, code,host, port)
 			if err != nil {
 				panic(err)
 			}
