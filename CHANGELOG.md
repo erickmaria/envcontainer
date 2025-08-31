@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.7.0 - 2025-08-31
+
 - feat:  add flag `host` in `up` command
 - feat: add installation script
 
