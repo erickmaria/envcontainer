@@ -15,6 +15,15 @@ Linux based systems:
 > [!NOTE] 
 > Obs: **Windows system have not been yet tested.**
 
+## Installation
+
+### Download binary
+Download a  [binary release](https://github.com/erickmaria/envcontainer/releases)
+
+#### or use installation script
+```bash
+curl -fsSL https://raw.githubusercontent.com/erickmaria/envcontainer/refs/heads/main/scripts/install.sh | bash
+```
 
 ## Quick Start
 
@@ -51,15 +60,16 @@ down:                   remove all envcontainer configuration running in the cur
     --name:                     container name
     --get-closer:               will get the closest configuration file and remove all envcontainer
 help:                   Run build COMMAND' for more information on a command. See: 'build help'
-ls:                     list envcontainers
-run:                    execute an .envcontainer on the current directory without saving it locally
-    --name:                     container name
+ls:                     execute an .envcontainer on the current directory without saving it locally
     --image:                    envcontainer image
     --command:                  execute command inside container
+    --name:                     container name
+run:                    list envcontainers
 up:                     run the envcontainer configuration to start the container and link it to the current directory
     --get-closer:               will get the closest configuration file to run a new container
     --auto-stop:                terminal shell that must be used
     --code:                     open with vscode
+    --host:                     ssh host that vscode will use connect
     --port:                     ssh port that vscode will use connect
 version:                show envcontainer version
 ```
