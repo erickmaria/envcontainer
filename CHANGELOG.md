@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- feat:  add flag `host` in `up` command
+- feat: add installation script
+
 ## v2.6.0 - 2025-08-27
 
 - fix: vscode integration in host network mode

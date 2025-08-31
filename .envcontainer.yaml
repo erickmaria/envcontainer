@@ -4,8 +4,8 @@ project:
   description: Create a development environment for envcontainer.
 auto_stop: true
 container:
-  # ports: 
-  #   - 22:2234
+  ports: 
+    - 22:2234
   # network_mode: host
   # networks:
   #   - name: envcontainer
@@ -48,7 +48,6 @@ container:
 
     # CMD ["sudo", "/usr/sbin/sshd", "-D", "-p", "2222"]
     CMD ["sudo", "/usr/sbin/sshd", "-D"]
-
 
 mounts:
   - type: bind

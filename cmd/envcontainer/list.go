@@ -1,41 +1,32 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
+	"github.com/ErickMaria/envcontainer/internal/template"
 	"github.com/ErickMaria/envcontainer/pkg/cli"
 )
 
 func List() cli.Command {
 	return cli.Command{
-		Desc: "execute an .envcontainer on the current directory without saving it locally",
-		Flags: cli.Flag{
-			Values: map[string]cli.Values{
-				"name": {
-					Description: "container name",
-				},
-				"image": {
-					Description: "envcontainer image",
-				},
-				"command": {
-					Description: "execute command inside container",
-				},
-			},
-		},
+		Desc: "list envcontainers",
 		Exec: func() {
+			configFiles, err := template.List()
+			if err != nil {
+				panic(err)
+			}
 
-			name := "envcontainer"
-			image := *cmd.Flags.Values["image"].ValueString
-			command := *cmd.Flags.Values["command"].ValueString
+			var containerOpts = map[string]types.ContainerOptions{}
+			for path, configs := range configFiles {
+				containerOpts[path] = types.ContainerOptions{
+					ContainerName: configs.Project.Name,
+					Ports:         configs.Container.Ports,
+					Shell:         configs.Container.Shell,
+					HostDirToBind: path,
+					Mounts:        configs.Mounts,
+				}
+			}
 
-			err := container.Run(ctx, types.ContainerOptions{
-				ContainerName: name,
-				ImageName:     image,
-				Commands:      strings.Split(strings.Trim(command, " "), " "),
-				AutoStop:      true,
-				HostDirToBind: path,
-			})
+			err = container.List(ctx, containerOpts)
 			if err != nil {
 				panic(err)
 			}

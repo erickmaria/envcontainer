@@ -12,7 +12,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, port string) error {
+func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
 
 	if options.ImageName == "" {
 		options.ImageName = "envcontainer/" + options.ContainerName
@@ -51,16 +51,16 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 		options.Commands = []string{getContainer.Command}
 
 		if code {
-			return docker.code(ctx, getContainer.ID, port, options)
+			return docker.code(ctx, getContainer.ID, host, port, options)
 		}
 
 		return docker.exec(ctx, getContainer.ID, options)
 	}
 
-	return docker.tryCreateAndStartContainer(ctx, options, code, port)
+	return docker.tryCreateAndStartContainer(ctx, options, code, host, port)
 }
 
-func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, port string) error {
+func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
 
 	var err error
 	exposedPorts := nat.PortSet{}
@@ -135,7 +135,7 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 	}
 
 	if code {
-		return docker.code(ctx, containerResponse.ID, port, options)
+		return docker.code(ctx, containerResponse.ID, host, port, options)
 	}
 
 	return docker.exec(ctx, containerResponse.ID, options)
@@ -154,15 +154,15 @@ func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerS
 	return nil
 }
 
-func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, port string) error {
+func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
 
 	if len(options.Commands) > 0 && options.Commands[0] != "" {
-		return docker.containerCreateAndStart(ctx, options, code, port)
+		return docker.containerCreateAndStart(ctx, options, code, host, port)
 	}
 	var err error
 	for _, shell := range shells {
 		options.Commands = []string{shell}
-		if err = docker.containerCreateAndStart(ctx, options, code, port); err == nil {
+		if err = docker.containerCreateAndStart(ctx, options, code, host, port); err == nil {
 			return err
 		}
 	}

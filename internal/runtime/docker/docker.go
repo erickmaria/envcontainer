@@ -243,7 +243,7 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 // 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
 // }
 
-func (docker *Docker) code(ctx context.Context, containerID string, port string, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) code(ctx context.Context, containerID string, host string, port string, options runtimeTypes.ContainerOptions) error {
 
 	inspect, err := docker.client.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -262,10 +262,14 @@ func (docker *Docker) code(ctx context.Context, containerID string, port string,
 		address = "0.0.0.0"
 	}
 
-	var host = fmt.Sprintf("%s:%s", address, port)
+	if host != "" {
+		address = host
+	}
+
+	var fullHost = fmt.Sprintf("%s:%s", address, port)
 	for i, p := range inspect.NetworkSettings.Ports {
 		if strings.Contains("22", i.Port()) {
-			host = fmt.Sprintf("%s:%s", address, p[0].HostPort)
+			fullHost = fmt.Sprintf("%s:%s", address, p[0].HostPort)
 		}
 	}
 
@@ -274,7 +278,7 @@ func (docker *Docker) code(ctx context.Context, containerID string, port string,
 		os.Exit(1)
 	}
 
-	connection := fmt.Sprint("vscode-remote://ssh-remote+"+inspect.Config.User+"@"+host, "/home/"+options.ContainerName)
+	connection := fmt.Sprint("vscode-remote://ssh-remote+"+inspect.Config.User+"@"+fullHost, "/home/"+options.ContainerName)
 
 	fmt.Println("conecting to container " + containerID + " from the remote " + connection)
 
