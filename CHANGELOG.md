@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: `down` commmand removing all containers
+
 ## v2.7.0 - 2025-08-31
 
 - feat:  add flag `host` in `up` command
