@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	internalType "github.com/ErickMaria/envcontainer/internal/pkg/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 )
@@ -46,7 +45,7 @@ func (docker *Docker) createNetwork(ctx context.Context, options []internalType.
 
 		if netOpts.External {
 
-			netList, err := docker.client.NetworkList(ctx, types.NetworkListOptions{
+			netList, err := docker.client.NetworkList(ctx, network.ListOptions{
 				Filters: filters.NewArgs(
 					filters.KeyValuePair{
 						Key:   "name",
@@ -78,11 +77,11 @@ func (docker *Docker) createNetwork(ctx context.Context, options []internalType.
 			}
 		}
 
-		networkConfig := types.NetworkCreate{
-			CheckDuplicate: true,
-			Driver:         netOpts.Driver,
-			IPAM:           &networkIPAMConfig,
-			Labels:         labels,
+		networkConfig := network.CreateOptions{
+			// CheckDuplicate: true,
+			Driver: netOpts.Driver,
+			IPAM:   &networkIPAMConfig,
+			Labels: labels,
 		}
 
 		resp, err := docker.client.NetworkCreate(ctx, netOpts.Name, networkConfig)
