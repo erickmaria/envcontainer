@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
@@ -94,7 +95,7 @@ func (docker *Docker) getContainer(ctx context.Context, labels map[string]string
 	return containers[0], nil
 }
 
-func (docker *Docker) getNetwork(ctx context.Context, labels map[string]string) ([]types.NetworkResource, error) {
+func (docker *Docker) getNetwork(ctx context.Context, labels map[string]string) ([]network.Summary, error) {
 
 	kvLabels := []filters.KeyValuePair{}
 
@@ -107,16 +108,16 @@ func (docker *Docker) getNetwork(ctx context.Context, labels map[string]string) 
 		}
 	}
 
-	networks, err := docker.client.NetworkList(ctx, types.NetworkListOptions{
+	networks, err := docker.client.NetworkList(ctx, network.ListOptions{
 		Filters: filters.NewArgs(kvLabels...),
 	})
 
 	if len(networks) == 0 {
-		return []types.NetworkResource{}, nil
+		return []network.Summary{}, nil
 	}
 
 	if err != nil {
-		return []types.NetworkResource{}, err
+		return []network.Summary{}, err
 	}
 
 	return networks, nil

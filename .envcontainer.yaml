@@ -20,8 +20,8 @@ container:
         mkdir /var/run/sshd
 
     # ADD USER    
-    RUN groupadd -g 1001 envcontainer  && \
-        useradd -ms /bin/bash -u 1001 -g envcontainer envcontainer && \
+    RUN groupadd -g {{ exec "id" "-g" }} envcontainer && \
+        useradd -ms /bin/bash -u {{ exec "id" "-g" }} -g envcontainer envcontainer && \
         echo 'envcontainer:envcontainer' | chpasswd && \
         echo "envcontainer ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     
@@ -48,6 +48,7 @@ container:
 
     # CMD ["sudo", "/usr/sbin/sshd", "-D", "-p", "2222"]
     CMD ["sudo", "/usr/sbin/sshd", "-D"]
+
 
 mounts:
   - type: bind

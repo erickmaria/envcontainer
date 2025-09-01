@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/moby/term"
 )
 
 func (docker *Docker) exec(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
 
-	resp, err := docker.client.ContainerExecCreate(ctx, containerID, types.ExecConfig{
+	resp, err := docker.client.ContainerExecCreate(ctx, containerID, container.ExecOptions{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -40,7 +40,7 @@ func (docker *Docker) exec(ctx context.Context, containerID string, options runt
 		return docker.Down(ctx, runtimeTypes.ContainerOptions{
 			ContainerName: strings.Split(options.ContainerName, "-")[0],
 			HostDirToBind: options.HostDirToBind,
-			Networks: options.Networks,
+			Networks:      options.Networks,
 		})
 	}
 
@@ -54,7 +54,7 @@ func (docker *Docker) execInteractive(ctx context.Context, containerID string) e
 		fmt.Println("Error getting terminal size: ", err)
 	}
 
-	steam, err := docker.client.ContainerExecAttach(ctx, containerID, types.ExecStartCheck{
+	steam, err := docker.client.ContainerExecAttach(ctx, containerID, container.ExecAttachOptions{
 		ConsoleSize: &[2]uint{height, width},
 		Detach:      false,
 		Tty:         true,

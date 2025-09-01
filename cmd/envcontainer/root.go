@@ -23,13 +23,14 @@ func Root() *cli.Command {
 	}
 
 	cmd, cmds = cli.NewCommand(cli.CommandConfig{
-		"build":   Build(),
-		"up":      Up(),
-		"down":    Down(),
-		"run":     List(),
-		"ls":      Run(),
-		"version": Version(),
-		"help":    Help(),
+		"build":    Build(),
+		"up":       Up(),
+		"down":     Down(),
+		"run":      List(),
+		"ls":       Run(),
+		"template": Template(),
+		"version":  Version(),
+		"help":     Help(),
 	})
 
 	return cmd

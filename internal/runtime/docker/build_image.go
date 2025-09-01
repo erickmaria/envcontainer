@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	runtimeTypes "github.com/ErickMaria/envcontainer/internal/runtime/types"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/archive"
 )
 
@@ -37,9 +39,9 @@ func (docker *Docker) Build(ctx context.Context, options runtimeTypes.BuildOptio
 	return nil
 }
 
-func (docker *Docker) pullImage(ctx context.Context, image string) error {
+func (docker *Docker) pullImage(ctx context.Context, imageName string) error {
 
-	out, err := docker.client.ImagePull(ctx, image, types.ImagePullOptions{})
+	out, err := docker.client.ImagePull(ctx, imageName, image.PullOptions{})
 	if err != nil {
 		return err
 	}
@@ -53,16 +55,16 @@ func (docker *Docker) pullImage(ctx context.Context, image string) error {
 	return nil
 }
 
-func (docker *Docker) checkIfImageExists(ctx context.Context, image string) (bool, error) {
+func (docker *Docker) checkIfImageExists(ctx context.Context, imageName string) (bool, error) {
 
-	if len(strings.Split(image, ":")) != 2 {
-		image = image + ":latest"
+	if len(strings.Split(imageName, ":")) != 2 {
+		imageName = imageName + ":latest"
 	}
 
-	images, err := docker.client.ImageList(ctx, types.ImageListOptions{
+	images, err := docker.client.ImageList(ctx, image.ListOptions{
 		Filters: filters.NewArgs(filters.KeyValuePair{
 			Key:   "reference",
-			Value: image,
+			Value: imageName,
 		}),
 	})
 	if err != nil {

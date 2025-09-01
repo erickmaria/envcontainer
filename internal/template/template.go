@@ -8,9 +8,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/pkg/types"
+	"github.com/ErickMaria/envcontainer/internal/template/gotmpl"
+	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v2"
 )
 
@@ -75,6 +78,7 @@ func Unmarshal() (Envcontainer, error) {
 
 	envcontainer.Project.Name = strings.ReplaceAll(strings.ToLower(envcontainer.Project.Name), " ", "-")
 	envcontainer.Container.Build, err = tmpDockerfile(envcontainer)
+
 	if err != nil {
 		return Envcontainer{}, err
 	}
@@ -128,10 +132,38 @@ func tmpDockerfile(envcontainer Envcontainer) (string, error) {
 			return "", err
 		}
 
+		processDockerfileTemplate(dockerfile)
+
 		return dockerfile, nil
 
 	}
 	return envcontainer.Container.Build, nil
+}
+
+func processDockerfileTemplate(dockerfile string) {
+	fmt.Println(dockerfile)
+	tpl, err := template.New(filepath.Base(dockerfile)).
+		Funcs(sprig.FuncMap()).
+		Funcs(gotmpl.FuncMap()).
+		ParseFiles(dockerfile)
+	if err != nil {
+		fmt.Println("Error parsing template:", err)
+		return
+	}
+
+	// Create a buffer to hold the processed template
+	var buf strings.Builder
+	err = tpl.ExecuteTemplate(&buf, filepath.Base(dockerfile), nil)
+	if err != nil {
+		fmt.Println("Error executing template:", err)
+		return
+	}
+
+	// Write the processed template back to the same file
+	err = os.WriteFile(dockerfile, []byte(buf.String()), 0644)
+	if err != nil {
+		fmt.Println("Error writing processed template:", err)
+	}
 }
 
 func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
