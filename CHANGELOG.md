@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: add Go templates with [sprout](https://github.com/go-sprout/sprout) and others [buildin](/internal/template/gotmpl/tmpl.go) FuncMaps
+- feat: add Go templates in `build` session with [sprout](https://github.com/go-sprout/sprout) and others [buildin](/internal/template/gotmpl/tmpl.go) FuncMaps
 - chore: update dependencies
 
 ## v2.7.1 - 2025-08-31
