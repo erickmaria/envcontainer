@@ -9,7 +9,7 @@ import (
 func Version() cli.Command {
 	return cli.Command{
 		Exec: func() {
-			fmt.Println("Version: 2.7.1")
+			fmt.Println("Version: 2.8.0")
 		},
 		Desc: "show envcontainer version",
 	}
