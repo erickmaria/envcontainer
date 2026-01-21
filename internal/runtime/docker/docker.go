@@ -245,7 +245,7 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 // 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
 // }
 
-func (docker *Docker) code(ctx context.Context, containerID string, host string, port uint32, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) openEditor(ctx context.Context, containerID string, host string, port uint32, options runtimeTypes.ContainerOptions, editor string) error {
 
 	inspect, err := docker.client.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -268,7 +268,7 @@ func (docker *Docker) code(ctx context.Context, containerID string, host string,
 		address = host
 	}
 
-	var fullHost = fmt.Sprintf("%s:%s", address, port)
+	var fullHost = fmt.Sprintf("%s:%d", address, port)
 	for i, p := range inspect.NetworkSettings.Ports {
 		if strings.Contains("22", i.Port()) {
 			fullHost = fmt.Sprintf("%s:%s", address, p[0].HostPort)
@@ -284,7 +284,7 @@ func (docker *Docker) code(ctx context.Context, containerID string, host string,
 
 	fmt.Println("conecting to container " + containerID + " from the remote " + connection)
 
-	cmd := exec.Command("code", "--folder-uri", connection)
+	cmd := exec.Command(editor, "--folder-uri", connection)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

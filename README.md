@@ -52,26 +52,25 @@ auto_stop: false
 For more information about envcontainer, run `envcontainer help` 
  
  ```bash
-Usage: envcontainer COMMAND --FLAGS
+UEnvcontainer helps you create, run, and manage reproducible development environments backed by Docker containers. Use the subcommands to build images, start/stop containers, and list projects.
 
-Commands
-build:                  build a image using envcontainer configuration in the current directory
-down:                   remove all envcontainer configuration running in the current directory
-    --name:                     container name
-    --get-closer:               will get the closest configuration file and remove all envcontainer
-help:                   Run build COMMAND' for more information on a command. See: 'build help'
-ls:                     execute an .envcontainer on the current directory without saving it locally
-    --image:                    envcontainer image
-    --command:                  execute command inside container
-    --name:                     container name
-run:                    list envcontainers
-up:                     run the envcontainer configuration to start the container and link it to the current directory
-    --get-closer:               will get the closest configuration file to run a new container
-    --auto-stop:                terminal shell that must be used
-    --code:                     open with vscode
-    --host:                     ssh host that vscode will use connect
-    --port:                     ssh port that vscode will use connect
-version:                show envcontainer version
+Usage:
+  envcontainer [command]
+
+Available Commands:
+  build       Build a Docker image from the envcontainer configuration in the current directory
+  down        Stop and remove containers created by envcontainer in the current directory
+  help        Help about any command
+  init        Create a starter .envcontainer.yaml configuration file
+  list        List discovered envcontainer projects and their status
+  run         Run a one-off container from an image without saving configuration
+  up          Start a container from envcontainer config and bind it to the current directory
+  version     Show envcontainer CLI version
+
+Flags:
+  -h, --help   help for envcontainer
+
+Use "envcontainer [command] --help" for more information about a command.
 ```
 
 > [!NOTE] 

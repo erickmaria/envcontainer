@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
@@ -12,6 +13,7 @@ import (
 type upOptions struct {
 	autoStop bool
 	code     bool
+	cursor   bool
 	host     string
 	port     uint32
 }
@@ -29,14 +31,19 @@ func upCommand(projOpts projectOptions) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&projOpts.getCloser, "get-closer", "", false, "Search parent dirs and use the nearest envcontainer configuration file")
 	flags.BoolVarP(&ops.autoStop, "auto-stop", "", false, "Automatically stop the container when the main process exits")
-	flags.BoolVarP(&ops.code, "code", "c", false, "Open the project in your code editor (integrates with VS Code by default)")
-	flags.StringVarP(&ops.host, "host", "a", "", "SSH host address used by the editor remote (only used with --code)")
-	flags.Uint32VarP(&ops.port, "port", "p", 22, "SSH port used by the editor remote (only used with --code)")
+	flags.BoolVarP(&ops.code, "code", "c", false, "Open the project in VS Code via SSH")
+	flags.BoolVarP(&ops.cursor, "cursor", "", false, "Open the project in Cursor editor via SSH")
+	flags.StringVarP(&ops.host, "host", "a", "", "SSH host address used by the editor remote (only used with --code or --cursor)")
+	flags.Uint32VarP(&ops.port, "port", "p", 22, "SSH port used by the editor remote (only used with --code or --cursor)")
 
 	return cmd
 }
 
 func (u upOptions) execute(projOpts projectOptions) error {
+
+	if u.code && u.cursor {
+		return fmt.Errorf("cannot use both --code and --cursor flags together. Please use only one editor at a time")
+	}
 
 	configFile, defaultMountDir, err := template.GetConfig(projOpts.getCloser)
 
@@ -66,6 +73,13 @@ func (u upOptions) execute(projOpts projectOptions) error {
 		configFile.Container.NetworkMode = "default"
 	}
 
+	var editor string
+	if u.code {
+		editor = "code"
+	} else if u.cursor {
+		editor = "cursor"
+	}
+
 	return container.Up(ctx, types.ContainerOptions{
 		AutoStop:        u.autoStop,
 		ContainerName:   configFile.Project.Name,
@@ -78,5 +92,5 @@ func (u upOptions) execute(projOpts projectOptions) error {
 		NetworkMode:     configFile.Container.NetworkMode,
 		Networks:        configFile.Container.Networks,
 		Labels:          commonLabels,
-	}, u.code, u.host, u.port)
+	}, editor, u.host, u.port)
 }

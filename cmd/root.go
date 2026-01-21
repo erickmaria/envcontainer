@@ -38,20 +38,21 @@ func init() {
 	var err error
 	ops.path, err = os.Getwd()
 	if err != nil {
-		slog.Error("%s", err.Error())
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(
-		versionCommand(ops),
 		initCommand(ops),
-		listCommand(ops),
 		buildCommand(ops),
-		runCommand(ops),
 		upCommand(ops),
 		downCommand(ops),
+		runCommand(ops),
+		listCommand(ops),
+		versionCommand(ops),
 	)
 }
 

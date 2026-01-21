@@ -2,25 +2,21 @@ project:
   description: A short description of the project
   name: envcontainer
   version: 0.0.1
-
 container:
-  # shell: bash  # Optional: shell to use inside the container (default: bash)
-  # ports:
-  #   - "8080:80"  # Optional: host:container port mapping
+  ports:
+    - 22:2229
+  shell: bash
   build: |
     FROM alpine:3.18
-    RUN apk add --no-cache git bash
+    RUN apk add --no-cache gcompat libstdc++ curl shadow sudo git openssh-server bash && \
+    ssh-keygen -A &&  \
+    mkdir -p /var/run/sshd && sed -i 's/AllowTcpForwarding.*/AllowTcpForwarding yes/' /etc/ssh/sshd_config
 
-  # network_mode: "host"  # Optional: Docker network_mode
-  # networks:
-  #   - name: mynet
-  #     external: true
+    # ADD USER    
+    RUN groupadd -g {{ exec "id" "-g" }} envcontainer && \
+        useradd -ms /bin/bash -u {{ exec "id" "-g" }} -g envcontainer envcontainer && \
+        echo 'envcontainer:envcontainer' | chpasswd && \
+        echo "envcontainer ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    USER envcontainer
 
-# always_update: false  # Optional: pull/update image before starting
-# auto_stop: false      # Optional: stop container after run
-
-# mounts:  # Optional: bind/volume mounts
-# - type: bind
-#   source: ./
-#   target: /workdir
-#   readonly: false
+    CMD ["sudo", "/usr/sbin/sshd", "-D"]

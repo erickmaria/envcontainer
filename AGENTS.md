@@ -9,7 +9,7 @@ Quick orientation
 
 Build & run (developer commands)
 - Build binary: `make build` (invokes `go build` producing `envcontainer`).
-- Run locally: `make run` (runs `go run cmd/envcontainer/*.go`).
+- Run locally: `make run` (runs `go run main.go`).
 - Create compact release: `make compact/linux` (build + zip).
 - Bump version: `make bump-version/major|minor|patch` (uses `bump2version`).
 - Release: `make release` (push tags to `main`).
@@ -36,7 +36,7 @@ When to use Docker vs. Go runtime code
 
 Recommended quick checks before edits
 - Read `README.md` and `Makefile` to capture expected UX and commands.
-- Locate CLI commands in `cmd/envcontainer` to understand flags and behavior.
+- Locate CLI commands in `cmd` to understand flags and behavior.
 - Search for related types under `internal/types/` and `internal/pkg/` for data shapes.
 
 Suggested next steps for humans (after agent edits)

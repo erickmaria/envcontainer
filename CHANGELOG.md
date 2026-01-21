@@ -3,6 +3,8 @@
 ## Unreleased
 
 - feat: add cobra CLI
+- feat: add `init` command
+- feat: add support for Cursor editor integration with `--cursor` flag
 
 ## v2.8.0 - 2025-09-01
 
