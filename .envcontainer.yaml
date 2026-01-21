@@ -9,7 +9,7 @@ container:
   #   - "8080:80"  # Optional: host:container port mapping
   build: |
     FROM alpine:3.18
-    RUN apk add --no-cache bash
+    RUN apk add --no-cache git bash
 
   # network_mode: "host"  # Optional: Docker network_mode
   # networks:
