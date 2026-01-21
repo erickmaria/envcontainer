@@ -12,6 +12,8 @@ import (
 
 	"github.com/ErickMaria/envcontainer/internal/pkg/syscmd"
 	"github.com/ErickMaria/envcontainer/internal/pkg/types"
+	tplTypes "github.com/ErickMaria/envcontainer/internal/template/types"
+
 	"github.com/ErickMaria/envcontainer/internal/template/gotmpl"
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v2"
@@ -33,24 +35,93 @@ const (
 	TypeVolume Type = "volume"
 )
 
-type Envcontainer struct {
-	Project struct {
-		Name        string `yaml:"name"`
-		Version     string `yaml:"version"`
-		Description string `yaml:"description"`
-	} `yaml:"project"`
-	Container struct {
-		Shell       string          `yaml:"shell"`
-		Ports       []string        `yaml:"ports"`
-		Build       string          `yaml:"build"`
-		NetworkMode string          `yaml:"network_mode"`
-		Networks    []types.Network `yaml:"networks"`
-	} `yaml:"container"`
-	// Labels       []string `yaml:"labels"`
-	AlwaysUpdate bool `yaml:"always_update"`
-	AutoStop     bool `yaml:"auto_stop"`
-	mountDir     string
-	Mounts       []types.Mount `yaml:"mounts"`
+func NewConfigFile(path string) error {
+
+	dest := filepath.Join(path, ".envcontainer.yaml")
+
+	if _, err := os.Stat(dest); err == nil {
+		fmt.Printf("%s already exists\n", dest)
+		return nil
+	}
+	// Build a default Envcontainer following the struct in internal/template
+	env := tplTypes.Envcontainer{
+		Project: tplTypes.Project{
+			Name:        filepath.Base(path),
+			Version:     "0.0.1",
+			Description: "A short description of the project",
+		},
+		Container: tplTypes.Container{
+			Shell:       "bash",
+			Ports:       []string{},
+			Build:       "FROM alpine:3.18\nRUN apk add --no-cache bash\n",
+			NetworkMode: "bridge",
+			Networks:    []types.Network{},
+		},
+		Mounts: []types.Mount{
+			{
+				Source:   "./",
+				Target:   "/workdir",
+				Type:     "bind",
+				Readonly: false,
+			},
+		},
+		AlwaysUpdate: false,
+		AutoStop:     false,
+	}
+
+	// Marshal only the project section; optional fields will be added as commented notes
+	proj := map[string]any{
+		"project": map[string]string{
+			"name":        env.Project.Name,
+			"version":     env.Project.Version,
+			"description": env.Project.Description,
+		},
+	}
+
+	projBytes, err := yaml.Marshal(proj)
+	if err != nil {
+		fmt.Printf("failed to marshal project config: %v\n", err)
+		return err
+	}
+
+	// prepare build block indented
+	buildIndented := ""
+	if env.Container.Build != "" {
+		// indent each line by 4 spaces
+		buildIndented = "    " + strings.ReplaceAll(strings.TrimRight(env.Container.Build, "\n"), "\n", "\n    ") + "\n"
+	}
+
+	// Assemble content: project (real) + container.build (real) + commented optional fields with examples
+	content := string(projBytes) + "\n" +
+		"container:\n" +
+		"  # shell: bash  # Optional: shell to use inside the container (default: bash)\n" +
+		"  # ports:\n" +
+		"  #   - \"8080:80\"  # Optional: host:container port mapping\n"
+
+	if buildIndented != "" {
+		content += "  build: |\n" + buildIndented + "\n"
+	} else {
+		content += "  # build: |\n  #   FROM alpine:3.18\n  #   RUN apk add --no-cache bash\n\n"
+	}
+
+	content += "  # network_mode: \"host\"  # Optional: Docker network_mode\n" +
+		"  # networks:\n" +
+		"  #   - name: mynet\n" +
+		"  #     external: true\n\n" +
+		"# always_update: false  # Optional: pull/update image before starting\n" +
+		"# auto_stop: false      # Optional: stop container after run\n\n" +
+		"# mounts:  # Optional: bind/volume mounts\n" +
+		"# - type: bind\n" +
+		"#   source: ./\n" +
+		"#   target: /workdir\n" +
+		"#   readonly: false\n"
+
+	if err := os.WriteFile(dest, []byte(content), 0644); err != nil {
+		fmt.Printf("failed to write %s: %v\n", dest, err)
+		return err
+	}
+
+	return nil
 }
 
 func Initialization() error {
@@ -63,43 +134,43 @@ func Initialization() error {
 	return nil
 }
 
-func Unmarshal() (Envcontainer, error) {
+func Unmarshal() (tplTypes.Envcontainer, error) {
 
 	data, err := os.ReadFile(fileLocation)
 	if err != nil {
-		return Envcontainer{}, err
+		return tplTypes.Envcontainer{}, err
 	}
 
-	var envcontainer Envcontainer
+	var envcontainer tplTypes.Envcontainer
 	err = yaml.Unmarshal(data, &envcontainer)
 	if err != nil {
-		return Envcontainer{}, err
+		return tplTypes.Envcontainer{}, err
 	}
 
 	envcontainer.Project.Name = strings.ReplaceAll(strings.ToLower(envcontainer.Project.Name), " ", "-")
 	envcontainer.Container.Build, err = tmpDockerfile(envcontainer)
 
 	if err != nil {
-		return Envcontainer{}, err
+		return tplTypes.Envcontainer{}, err
 	}
 
 	err = validate(envcontainer)
 
 	if err != nil {
-		return Envcontainer{}, err
+		return tplTypes.Envcontainer{}, err
 	}
 
 	return envcontainer, nil
 }
 
-func UnmarshalWithFile(location string) (Envcontainer, error) {
+func UnmarshalWithFile(location string) (tplTypes.Envcontainer, error) {
 
 	fileLocation = location
 
 	return Unmarshal()
 }
 
-func validate(envcontainer Envcontainer) error {
+func validate(envcontainer tplTypes.Envcontainer) error {
 
 	if len(envcontainer.Container.Ports) > 0 {
 
@@ -116,11 +187,11 @@ func validate(envcontainer Envcontainer) error {
 	return nil
 }
 
-func tmpDockerfile(envcontainer Envcontainer) (string, error) {
+func tmpDockerfile(envcontainer tplTypes.Envcontainer) (string, error) {
 
 	_, err := os.ReadFile(envcontainer.Container.Build)
 	if err != nil {
-		dockerfilePath := envcontainer.GetTmpDockerfileDir()
+		dockerfilePath := GetTmpDockerfileDir(envcontainer)
 
 		err = syscmd.CreateDir([]string{dockerfilePath})
 		if err != nil {
@@ -141,7 +212,6 @@ func tmpDockerfile(envcontainer Envcontainer) (string, error) {
 }
 
 func processDockerfileTemplate(dockerfile string) {
-	fmt.Println(dockerfile)
 	tpl, err := template.New(filepath.Base(dockerfile)).
 		Funcs(sprig.FuncMap()).
 		Funcs(gotmpl.FuncMap()).
@@ -166,11 +236,11 @@ func processDockerfileTemplate(dockerfile string) {
 	}
 }
 
-func (envcontainer Envcontainer) GetTmpDockerfileDir() string {
+func GetTmpDockerfileDir(envcontainer tplTypes.Envcontainer) string {
 	return paths["dockerfiles"] + "/" + envcontainer.Project.Name + "/" + envcontainer.Project.Version
 }
 
-func List() (map[string]Envcontainer, error) {
+func List() (map[string]tplTypes.Envcontainer, error) {
 
 	usr, err := user.Current()
 	if err != nil {
@@ -196,7 +266,7 @@ func List() (map[string]Envcontainer, error) {
 		return nil, err
 	}
 
-	var envcontainers = map[string]Envcontainer{}
+	var envcontainers = map[string]tplTypes.Envcontainer{}
 	for _, match := range matches {
 		envcontainer, err := UnmarshalWithFile(match)
 		if err != nil {
@@ -210,7 +280,7 @@ func List() (map[string]Envcontainer, error) {
 	return envcontainers, nil
 }
 
-func GetConfig(getCloser bool) (Envcontainer, string, error) {
+func GetConfig(getCloser bool) (tplTypes.Envcontainer, string, error) {
 
 	configFile, errConfigFile := Unmarshal()
 	var defaultMountDir string
@@ -218,7 +288,7 @@ func GetConfig(getCloser bool) (Envcontainer, string, error) {
 	if getCloser {
 		file, err := syscmd.FindFileCloser(".envcontainer.yaml")
 		if err != nil {
-			return Envcontainer{}, "", err
+			return tplTypes.Envcontainer{}, "", err
 		}
 
 		pwd, _ := os.Getwd()
@@ -230,7 +300,7 @@ func GetConfig(getCloser bool) (Envcontainer, string, error) {
 		if file != "" {
 			configFile, err = UnmarshalWithFile(file)
 			if err != nil {
-				return Envcontainer{}, "", err
+				return tplTypes.Envcontainer{}, "", err
 			}
 
 		}
@@ -238,7 +308,7 @@ func GetConfig(getCloser bool) (Envcontainer, string, error) {
 		defaultMountDir = pwd + "/.envcontainer/"
 
 	} else if errConfigFile != nil {
-		return Envcontainer{}, "", errConfigFile
+		return tplTypes.Envcontainer{}, "", errConfigFile
 	}
 
 	if configFile.Container.Shell == "" {
@@ -259,22 +329,12 @@ func toSlice(maps map[string]string) []string {
 	return values
 }
 
-func sliceDeleteEmpty(s []string) []string {
-	var r []string
-	for _, str := range s {
-		if str != "" {
-			r = append(r, str)
-		}
-	}
-	return r
-}
-
-func (envcontainer *Envcontainer) SetMountDir(mountDir string) {
-
-	envcontainer.mountDir = mountDir
-
-}
-
-func (envcontainer *Envcontainer) GetMountDir() string {
-	return envcontainer.mountDir
-}
+// func sliceDeleteEmpty(s []string) []string {
+// 	var r []string
+// 	for _, str := range s {
+// 		if str != "" {
+// 			r = append(r, str)
+// 		}
+// 	}
+// 	return r
+// }

@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -244,7 +245,7 @@ func (docker *Docker) buildMount(defaultMountDir string, mounts []pkgTypes.Mount
 // 	panic("envcontainer: mount " + mount + " does not match the pattern.\n")
 // }
 
-func (docker *Docker) code(ctx context.Context, containerID string, host string, port string, options runtimeTypes.ContainerOptions) error {
+func (docker *Docker) code(ctx context.Context, containerID string, host string, port uint32, options runtimeTypes.ContainerOptions) error {
 
 	inspect, err := docker.client.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -274,8 +275,8 @@ func (docker *Docker) code(ctx context.Context, containerID string, host string,
 		}
 	}
 
-	if !docker.isPortAvailable(address, port, 3*time.Second) {
-		fmt.Println("port " + port + " is not available. Try to use --port flag or try again")
+	if !docker.isPortAvailable(address, strconv.Itoa(int(port)), 3*time.Second) {
+		fmt.Printf("port %d is not available. Try to use --port flag or try again\n", port)
 		os.Exit(1)
 	}
 

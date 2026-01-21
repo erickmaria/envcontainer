@@ -12,7 +12,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port uint32) error {
 
 	if options.ImageName == "" {
 		options.ImageName = "envcontainer/" + options.ContainerName
@@ -60,7 +60,7 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 	return docker.tryCreateAndStartContainer(ctx, options, code, host, port)
 }
 
-func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port uint32) error {
 
 	var err error
 	exposedPorts := nat.PortSet{}
@@ -154,11 +154,12 @@ func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerS
 	return nil
 }
 
-func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port uint32) error {
 
 	if len(options.Commands) > 0 && options.Commands[0] != "" {
 		return docker.containerCreateAndStart(ctx, options, code, host, port)
 	}
+
 	var err error
 	for _, shell := range shells {
 		options.Commands = []string{shell}

@@ -1,7 +1,7 @@
 DEFAULT_BRANCH := main
 
 define _build
-	GOOS=$1 GOARCH=amd64 go build -o envcontainer cmd/envcontainer/*.go
+	GOOS=$1 GOARCH=amd64 go build -o envcontainer main.go
 endef
 
 .PHONY: compact/linux
