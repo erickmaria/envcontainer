@@ -12,7 +12,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOptions, editor string, host string, port uint32) error {
 
 	if options.ImageName == "" {
 		options.ImageName = "envcontainer/" + options.ContainerName
@@ -50,17 +50,17 @@ func (docker *Docker) Up(ctx context.Context, options runtimeTypes.ContainerOpti
 
 		options.Commands = []string{getContainer.Command}
 
-		if code {
-			return docker.code(ctx, getContainer.ID, host, port, options)
+		if editor != "" {
+			return docker.openEditor(ctx, getContainer.ID, host, port, options, editor)
 		}
 
 		return docker.exec(ctx, getContainer.ID, options)
 	}
 
-	return docker.tryCreateAndStartContainer(ctx, options, code, host, port)
+	return docker.tryCreateAndStartContainer(ctx, options, editor, host, port)
 }
 
-func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) containerCreateAndStart(ctx context.Context, options runtimeTypes.ContainerOptions, editor string, host string, port uint32) error {
 
 	var err error
 	exposedPorts := nat.PortSet{}
@@ -134,8 +134,8 @@ func (docker *Docker) containerCreateAndStart(ctx context.Context, options runti
 		}
 	}
 
-	if code {
-		return docker.code(ctx, containerResponse.ID, host, port, options)
+	if editor != "" {
+		return docker.openEditor(ctx, containerResponse.ID, host, port, options, editor)
 	}
 
 	return docker.exec(ctx, containerResponse.ID, options)
@@ -154,15 +154,16 @@ func (docker *Docker) tryStart(ctx context.Context, info runtimeTypes.ContainerS
 	return nil
 }
 
-func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, code bool, host string, port string) error {
+func (docker *Docker) tryCreateAndStartContainer(ctx context.Context, options runtimeTypes.ContainerOptions, editor string, host string, port uint32) error {
 
 	if len(options.Commands) > 0 && options.Commands[0] != "" {
-		return docker.containerCreateAndStart(ctx, options, code, host, port)
+		return docker.containerCreateAndStart(ctx, options, editor, host, port)
 	}
+
 	var err error
 	for _, shell := range shells {
 		options.Commands = []string{shell}
-		if err = docker.containerCreateAndStart(ctx, options, code, host, port); err == nil {
+		if err = docker.containerCreateAndStart(ctx, options, editor, host, port); err == nil {
 			return err
 		}
 	}

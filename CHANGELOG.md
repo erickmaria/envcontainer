@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- feat: add cobra CLI
+- feat: add `init` command
+- feat: add support for Cursor editor integration with `--cursor` flag
+
 ## v2.8.0 - 2025-09-01
 
 - feat: add Go templates in `build` session with [sprout](https://github.com/go-sprout/sprout) and others [buildin](/internal/template/gotmpl/tmpl.go) FuncMaps

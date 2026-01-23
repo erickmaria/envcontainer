@@ -14,15 +14,17 @@ import (
 
 func (docker *Docker) exec(ctx context.Context, containerID string, options runtimeTypes.ContainerOptions) error {
 
+	if options.Shell != "" {
+		options.Commands = []string{options.Shell}
+	}
+
 	resp, err := docker.client.ContainerExecCreate(ctx, containerID, container.ExecOptions{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
 		Privileged:   true,
 		Tty:          true,
-		Cmd: []string{
-			options.Shell,
-		},
+		Cmd:          options.Commands,
 	})
 	if err != nil {
 		return err
