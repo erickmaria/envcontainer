@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fit: container conflict
+
 ## v2.9.0 - 2026-01-23
 
 - feat: add cobra CLI

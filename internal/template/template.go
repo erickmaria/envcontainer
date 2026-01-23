@@ -285,27 +285,31 @@ func GetConfig(getCloser bool) (tplTypes.Envcontainer, string, error) {
 	configFile, errConfigFile := Unmarshal()
 	var defaultMountDir string
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		return tplTypes.Envcontainer{}, defaultMountDir, err
+	}
+
+	defaultMountDir = pwd + "/.envcontainer/"
+
 	if getCloser {
 		file, err := syscmd.FindFileCloser(".envcontainer.yaml")
 		if err != nil {
-			return tplTypes.Envcontainer{}, "", err
+			return tplTypes.Envcontainer{}, defaultMountDir, err
 		}
+		fmt.Println(pwd)
 
-		pwd, _ := os.Getwd()
 		for i := 0; i < strings.Count(file, "../"); i++ {
 			pwd = strings.Join(strings.Split(pwd, "/")[:len(strings.Split(pwd, "/"))-1], "/")
-
 		}
 
 		if file != "" {
 			configFile, err = UnmarshalWithFile(file)
 			if err != nil {
-				return tplTypes.Envcontainer{}, "", err
+				return tplTypes.Envcontainer{}, defaultMountDir, err
 			}
 
 		}
-
-		defaultMountDir = pwd + "/.envcontainer/"
 
 	} else if errConfigFile != nil {
 		return tplTypes.Envcontainer{}, "", errConfigFile
