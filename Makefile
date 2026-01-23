@@ -15,7 +15,7 @@ build:
 
 .PHONY: run
 run:
-	go run cmd/envcontainer/*.go
+	go run main.go
 
 .PHONY: bump-version/major
 bump-version/major:  ## Increment the major version (X.y.z)
