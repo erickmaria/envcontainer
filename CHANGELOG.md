@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.9.1 - 2026-01-23
+
 - fit: container conflict
 
 ## v2.9.0 - 2026-01-23
