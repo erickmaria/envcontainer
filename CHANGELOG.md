@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.10.0 - 2026-02-09
+
 - feat: add caching for discovered projects (`~/.envcontainer/cache/cache.json`) and use it in `list`
 - feat: add `--refresh` flag to `list` to force a filesystem rescan and update the cache
 - feat: make `init` update the local cache with the newly created `.envcontainer.yaml` (avoids a full rescan)

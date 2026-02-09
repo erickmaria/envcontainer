@@ -24,5 +24,5 @@ func versionCommand(projOpts projectOptions) *cobra.Command {
 }
 
 func (v versionOptions) execute(projOpts projectOptions) {
-	fmt.Println("Version: 2.9.1")
+	fmt.Println("Version: 2.10.0")
 }
