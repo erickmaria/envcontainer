@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- feat: add `update` command for self-updating binary from GitHub releases
+- feat: add version checking with caching to avoid repeated network calls
+- feat: add `version` command with optional changelog display
+- feat: implement `--check` flag to force check for updates and bypass cache
+- feat: implement `--verbose` flag to display changelog of available updates
+- feat: cache changelogs alongside version info for offline viewing
+- feat: automatic cache refresh after successful update
+- chore: add `internal/pkg/updater/updater.go` for version management and update logic
+
 ## v2.10.0 - 2026-02-09
 
 - feat: add caching for discovered projects (`~/.envcontainer/cache/cache.json`) and use it in `list`

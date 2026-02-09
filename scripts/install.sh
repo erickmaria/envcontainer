@@ -20,7 +20,7 @@ check_command() {
 }
 
 # --- Main Installation Script ---
-echo "🚀 Starting envcontainer installation script..."
+echo "Starting envcontainer installation script..."
 echo "----------------------------------------------"
 
 # 1. Check for necessary tools
@@ -28,7 +28,7 @@ echo "1. Checking for required tools (curl, unzip, jq)..."
 check_command "curl"
 check_command "unzip"
 check_command "jq"
-echo "All required tools are present. ✅"
+echo "All required tools are present."
 
 # Create a temporary directory for download and unpacking
 TMP_DIR=$(mktemp -d -t envcontainer_install_XXXXXX)
@@ -72,7 +72,7 @@ if ! curl -sL "$DOWNLOAD_URL" -o "$DOWNLOADED_FILE"; then
     echo -e "\n\033[0;31mError:\033[0m Failed to download the release zip file." >&2
     exit 1
 fi
-echo "Download complete. ✅"
+echo "Download complete."
 
 # 3. Unpack the file
 echo -e "\n3. Unpacking the release archive..."
@@ -126,7 +126,7 @@ if ! sudo chmod +x "$TARGET_SCRIPT"; then
     exit 1
 fi
 
-echo -e "Successfully installed \0  33[0;32menvcontainer\033[0m to $INSTALL_DIR. ✅"
+echo -e "Successfully installed \0  33[0;32menvcontainer\033[0m to $INSTALL_DIR."
 echo "----------------------------------------------"
 
-echo -e "\n🎉 Installation of envcontainer is complete!"
+echo -e "\nInstallation of envcontainer is complete!"

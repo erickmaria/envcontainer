@@ -10,7 +10,7 @@ import (
 )
 
 const cacheDirName = ".envcontainer/cache"
-const cacheFileName = "cache.json"
+const cacheFileName = "envcontainer_list_cache"
 
 func cachePath() (string, string, error) {
 	usr, err := user.Current()
