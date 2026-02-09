@@ -10,20 +10,15 @@ import (
 
 func (docker *Docker) List(ctx context.Context, options map[string]types.ContainerOptions) error {
 
-	fmt.Printf("%-20s  %-20s %-20s\n", "CONTAINER NAME", "STATUS", "PATH")
-
 	paths := make([]string, 0, len(options))
 	for key := range options {
 		paths = append(paths, key)
 	}
 	sort.Strings(paths)
 
+	fmt.Printf("%-20s %-20s\n", "NAME", "PATH")
 	for _, path := range paths {
-		getContainer, err := docker.getContainer(ctx, options[path].Labels)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%-20s %-20s  %-20s\n", options[path].ContainerName, getContainer.State, path)
+		fmt.Printf("%-20s %-20s\n", options[path].ContainerName, path)
 	}
 
 	return nil

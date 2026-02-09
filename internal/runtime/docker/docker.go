@@ -275,7 +275,7 @@ func (docker *Docker) openEditor(ctx context.Context, containerID string, host s
 		}
 	}
 
-	if !docker.isPortAvailable(address, strconv.Itoa(int(port)), 3*time.Second) {
+	if !docker.isPortAvailable(address, strconv.Itoa(int(port)), 2*time.Second) {
 		fmt.Printf("port %d is not available. Try to use --port flag or try again\n", port)
 		os.Exit(1)
 	}
@@ -298,8 +298,11 @@ func (docker *Docker) openEditor(ctx context.Context, containerID string, host s
 }
 
 func (docker *Docker) isPortAvailable(host string, port string, timeout time.Duration) bool {
-	address := fmt.Sprintf("%s:%s", host, port)
 
+	// give the container a moment to start the SSH service
+	time.Sleep(2 * time.Second)
+
+	address := net.JoinHostPort(host, port)
 	conn, err := net.DialTimeout("tcp", address, timeout)
 
 	if err != nil {

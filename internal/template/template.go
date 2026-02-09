@@ -144,7 +144,7 @@ func Unmarshal() (tplTypes.Envcontainer, error) {
 	var envcontainer tplTypes.Envcontainer
 	err = yaml.Unmarshal(data, &envcontainer)
 	if err != nil {
-		return tplTypes.Envcontainer{}, err
+		return envcontainer, err
 	}
 
 	envcontainer.Project.Name = strings.ReplaceAll(strings.ToLower(envcontainer.Project.Name), " ", "-")
@@ -164,9 +164,7 @@ func Unmarshal() (tplTypes.Envcontainer, error) {
 }
 
 func UnmarshalWithFile(location string) (tplTypes.Envcontainer, error) {
-
 	fileLocation = location
-
 	return Unmarshal()
 }
 
@@ -247,12 +245,12 @@ func List() (map[string]tplTypes.Envcontainer, error) {
 		return nil, err
 	}
 
-	root := usr.HomeDir
+	home := usr.HomeDir
 	pattern := ".envcontainer.yaml"
 
 	var matches []string
 
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(home, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -269,12 +267,10 @@ func List() (map[string]tplTypes.Envcontainer, error) {
 	var envcontainers = map[string]tplTypes.Envcontainer{}
 	for _, match := range matches {
 		envcontainer, err := UnmarshalWithFile(match)
-		if err != nil {
-			fmt.Println(match)
+		if err != nil && !strings.Contains(err.Error(), "unmarshal") {
 			return nil, err
 		}
 		envcontainers[match] = envcontainer
-
 	}
 
 	return envcontainers, nil

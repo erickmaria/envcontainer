@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- feat: add caching for discovered projects (`~/.envcontainer/cache/cache.json`) and use it in `list`
+- feat: add `--refresh` flag to `list` to force a filesystem rescan and update the cache
+- feat: make `init` update the local cache with the newly created `.envcontainer.yaml` (avoids a full rescan)
+- fix: add 2s delay before checking editor SSH port in `up` to allow service startup
+- chore: add `internal/template/cache.go` to manage cache read/write and refresh
+
 ## v2.9.1 - 2026-01-23
 
 - fit: container conflict
