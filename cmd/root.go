@@ -54,6 +54,7 @@ func init() {
 		runCommand(ops),
 		listCommand(ops),
 		versionCommand(ops),
+		updateCommand(ops),
 	)
 }
 
