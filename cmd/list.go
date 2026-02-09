@@ -3,10 +3,12 @@ package cmd
 import (
 	"github.com/ErickMaria/envcontainer/internal/runtime/types"
 	"github.com/ErickMaria/envcontainer/internal/template"
+	tplTypes "github.com/ErickMaria/envcontainer/internal/template/types"
 	"github.com/spf13/cobra"
 )
 
 type listOptions struct {
+	Refresh bool
 }
 
 func listCommand(projOpts projectOptions) *cobra.Command {
@@ -21,13 +23,33 @@ func listCommand(projOpts projectOptions) *cobra.Command {
 		},
 	}
 
+	flags := cmd.Flags()
+	flags.BoolVarP(&ops.Refresh, "refresh", "f", false, "refresh the list of envcontainer projects by re-scanning the filesystem for configuration files")
+
 	return cmd
 }
 
 func (l listOptions) execute(projOpts projectOptions) error {
-	configFiles, err := template.List()
-	if err != nil {
-		return err
+	var configFiles map[string]tplTypes.Envcontainer
+	var err error
+
+	if l.Refresh {
+		configFiles, err = template.RefreshCache()
+		if err != nil {
+			return err
+		}
+	} else {
+		configFiles, err = template.ListCached()
+		if err != nil {
+			return err
+		}
+		// if cache is empty, populate it by scanning
+		if len(configFiles) == 0 {
+			configFiles, err = template.RefreshCache()
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	var containerOpts = map[string]types.ContainerOptions{}

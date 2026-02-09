@@ -22,9 +22,10 @@ var (
 	container = docker.NewDocker()
 
 	rootCmd = &cobra.Command{
-		Use:   "envcontainer",
-		Short: "Create and manage reproducible development environments using Docker",
-		Long:  "Envcontainer helps you create, run, and manage reproducible development environments backed by Docker containers. Use the subcommands to build images, start/stop containers, and list projects.",
+		Use:          "envcontainer",
+		Short:        "Create and manage reproducible development environments using Docker",
+		Long:         "Envcontainer helps you create, run, and manage reproducible development environments backed by Docker containers. Use the subcommands to build images, start/stop containers, and list projects.",
+		SilenceUsage: true,
 	}
 )
 
