@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.11.0 - 2026-02-09
+
 - feat: add `update` command for self-updating binary from GitHub releases
 - feat: add version checking with caching to avoid repeated network calls
 - feat: add `version` command with optional changelog display
